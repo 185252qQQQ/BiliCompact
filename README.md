@@ -1,16 +1,13 @@
-# BiliCompact
+# BiliCompact [中文](#中文) | [English](#english)
 BiliCompact – A Tampermonkey script that severely trims the Bilibili web feed.
-# BiliCompact
-[中文](#中文) | [English](#english)
 ---
 ## 中文
 
 ###  项目简介
 
 **BiliCompact** —— 一款针对 B 站（Bilibili）网页端的 **Tampermonkey 用户脚本**，让你对首页、分区、动态、搜索等页面上的视频流拥有精确的控制力。
-
 你是否厌倦了 B 站首页和各类页面铺天盖地的视频流？BiliCompact 让你精确控制显示的视频数量，并智能过滤直播、广告、番剧、付费内容等冗余信息。
-
+使用方法：点击main.user.js，在右侧点击raw即可。
 ###  功能特性
 
 - **数量限制**：设置最大显示视频数量（1~100 个），告别信息过载。
@@ -100,9 +97,8 @@ BiliCompact – A Tampermonkey script that severely trims the Bilibili web feed.
 ###  Introduction
 
 **BiliCompact** is a **Tampermonkey userscript** that gives you precise control over the video feed on Bilibili (B站) web pages – homepage, channels, search, dynamic, and more.
-
 Tired of endless video streams? BiliCompact lets you set a maximum number of visible videos and automatically filters out live streams, ads, bangumi, paid courses, and other clutter.
-
+To use this script, click on main.user.js, then click the ‘Raw’ button located on the right side, and everything will work fine.
 ###  Features
 
 - **Limit video count**: Set a max number (1–100) to avoid information overload.
