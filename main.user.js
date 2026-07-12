@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name         更重的网页端B站精简
 // @namespace    http://tampermonkey.net/
-// @version      2.0.0
-// @description  你是否厌倦了B站网页端极多视频？想要更简要的界面？这个插件将帮助你只显示指定数量的视频，支持多种页面、黑/白名单、快捷键、悬浮面板，配置持久化。\n本人技术极渣，绝不维护，部分代码有AI-coding。
+// @version      2.1.0
+// @description  你是否厌倦了B站网页端极多视频？想要更简要的界面？这个插件将帮助你只显示指定数量的视频，支持多种页面、黑/白名单、快捷键，配置持久化。非侵入式设计，不在B站页面注入任何UI元素。
 // @author       暮雨终将落下
 // @match        https://www.bilibili.com/
 // @match        https://www.bilibili.com/?*
@@ -46,8 +46,6 @@
         excludePaid: true,            // 排除付费课程
         keepSpecialUPIDs: [],         // 保留的UP主ID列表（数字）
         keepPromoted: false,          // 保留推广位（不计入数量）
-        showCounter: true,            // 显示计数器
-        showToggleBtn: true,          // 显示切换按钮
         enableShortcuts: true,        // 启用快捷键
         debug: false                  // 调试模式
     };
@@ -59,7 +57,6 @@
     let videoListContainer = null;     // 缓存的列表容器
     let observer = null;
     let debounceTimer = null;
-    let throttleTimer = null;
     let lastRun = 0;
     const THROTTLE_INTERVAL = 200;     // 节流间隔（ms）
 
@@ -118,7 +115,6 @@
         for (const sel of dataCandidates) {
             const els = document.querySelectorAll(sel);
             if (els.length > 0) {
-                // 进一步检查是否是视频卡片（父级或自身包含链接）
                 for (const el of els) {
                     const card = el.closest('.bili-video-card, .video-item, .feed-item, [class*="video-card"], [class*="feed-item"]');
                     if (card) {
@@ -158,7 +154,6 @@
             }
         }
 
-        // 最终失败
         return null;
     }
 
@@ -180,7 +175,6 @@
                 return el;
             }
         }
-        // 若找不到，使用 body
         videoListContainer = document.body;
         return videoListContainer;
     }
@@ -188,7 +182,6 @@
     // ======================== 核心过滤逻辑 ========================
     function limitVideos() {
         if (!isActive) {
-            // 如果关闭，恢复所有视频显示
             restoreAllVideos();
             return;
         }
@@ -203,7 +196,6 @@
             // 获取所有卡片
             let cards = document.querySelectorAll(selector);
             if (cards.length === 0) {
-                // 尝试通过链接查找
                 const links = document.querySelectorAll('a[href*="/video/"]');
                 const parentCards = new Set();
                 for (const link of links) {
@@ -225,27 +217,22 @@
                 }
             }
 
-            // 转换为数组并过滤
             let videoCards = Array.from(cards);
 
-            // 过滤掉非视频（直播、广告等）
+            // 过滤非视频内容
             videoCards = videoCards.filter(card => {
                 const text = (card.textContent || '').toLowerCase();
                 const cls = (card.className || '').toLowerCase();
 
-                // 排除直播
                 if (config.excludeLive && (cls.includes('live') || text.includes('直播') || text.includes('正在直播'))) {
                     return false;
                 }
-                // 排除广告
                 if (config.excludeAd && (cls.includes('ad') || cls.includes('advert') || text.includes('广告') || text.includes('sponsor'))) {
                     return false;
                 }
-                // 排除番剧（通常有“番剧”或“追番”标记）
                 if (config.excludeBangumi && (cls.includes('bangumi') || text.includes('番剧') || text.includes('追番'))) {
                     return false;
                 }
-                // 排除付费课程
                 if (config.excludePaid && (text.includes('付费') || text.includes('课程') || text.includes('￥') || text.includes('¥'))) {
                     return false;
                 }
@@ -254,12 +241,10 @@
 
             // 处理特殊保留（UP主ID）
             if (config.keepSpecialUPIDs && config.keepSpecialUPIDs.length > 0) {
-                // 尝试从卡片中提取UP主ID（可能通过data属性或链接）
                 const keepSet = new Set(config.keepSpecialUPIDs.map(id => String(id)));
                 const kept = [];
                 const rest = [];
                 for (const card of videoCards) {
-                    // 查找UP主链接
                     const upLink = card.querySelector('a[href*="/space/"]');
                     let upid = null;
                     if (upLink) {
@@ -272,33 +257,29 @@
                         rest.push(card);
                     }
                 }
-                // 先放保留的，再放其他的
                 videoCards = kept.concat(rest);
             }
 
-            // 如果保留推广位，需要从总数中排除推广位卡片（不计入数量）
+            // 保留推广位
             let promotedCards = [];
             if (config.keepPromoted) {
                 promotedCards = videoCards.filter(card => {
                     const text = (card.textContent || '').toLowerCase();
                     return text.includes('推广') || text.includes('广告') || text.includes('sponsor');
                 });
-                // 从主列表中移除推广位，它们会单独显示
                 videoCards = videoCards.filter(card => !promotedCards.includes(card));
             }
 
-            // 处理置顶/推荐卡片：尝试识别特殊容器，将其移出计数（但保留显示）
+            // 处理置顶/推荐卡片
             const topSelectors = ['.bili-feed__banner', '.bili-feed__top', '.top-banner', '.recommend-banner'];
             let topCards = [];
             for (const sel of topSelectors) {
                 const tops = document.querySelectorAll(sel);
                 for (const top of tops) {
-                    // 检查top是否包含视频卡片
                     const innerCards = top.querySelectorAll(selector);
                     for (const card of innerCards) {
                         if (videoCards.includes(card)) {
                             topCards.push(card);
-                            // 从主列表移除
                             const idx = videoCards.indexOf(card);
                             if (idx !== -1) videoCards.splice(idx, 1);
                         }
@@ -311,7 +292,7 @@
             const toShow = videoCards.slice(0, max);
             const toHide = videoCards.slice(max);
 
-            // 显示前max个（并确保它们可见）
+            // 显示前max个
             toShow.forEach(card => {
                 card.classList.remove('bili-limited-hide');
                 card.style.display = '';
@@ -328,7 +309,6 @@
             // 隐藏其余
             toHide.forEach(card => {
                 card.classList.add('bili-limited-hide');
-                // 同时设置内联样式确保隐藏（但如果CSS类已定义，可省略）
                 card.style.display = 'none';
                 card.style.visibility = 'hidden';
                 card.style.opacity = '0';
@@ -354,9 +334,6 @@
                 card.style.flex = '';
             });
 
-            // 更新计数器
-            updateCounter(videoCards.length, toShow.length, toHide.length + promotedCards.length + topCards.length);
-
             log(`已处理: 总视频 ${videoCards.length + promotedCards.length + topCards.length}, 显示 ${toShow.length + promotedCards.length + topCards.length}, 隐藏 ${toHide.length}`);
 
         } catch (e) {
@@ -380,14 +357,9 @@
             card.style.position = '';
             card.style.flex = '';
         }
-        // 隐藏计数器（关闭时）
-        const counter = document.getElementById('bili-lite-counter');
-        if (counter) counter.style.display = 'none';
-        const toggleBtn = document.getElementById('bili-lite-toggle');
-        if (toggleBtn) toggleBtn.textContent = '🟢 精简已关闭';
     }
 
-    // ======================== UI 组件 ========================
+    // ======================== CSS 样式（仅过滤类和动态配置面板） ========================
     function injectStyles() {
         GM_addStyle(`
             .bili-limited-hide {
@@ -402,104 +374,59 @@
                 position: absolute !important;
                 pointer-events: none !important;
             }
-            #bili-lite-counter {
+        `);
+    }
+
+    // ======================== 配置面板（非侵入式：按需创建/销毁） ========================
+    // 配置面板的 CSS（与页面样式完全隔离，使用独立沙盒）
+    function injectPanelStyles() {
+        // 面板样式仅在使用时注入一次
+        if (document.getElementById('bili-compact-panel-styles')) return;
+        const styleEl = document.createElement('style');
+        styleEl.id = 'bili-compact-panel-styles';
+        styleEl.textContent = `
+            .bili-compact-overlay {
                 position: fixed;
-                top: 10px;
-                left: 10px;
-                background: rgba(0, 0, 0, 0.7);
-                color: #fff;
-                padding: 6px 12px;
-                border-radius: 20px;
-                font-size: 13px;
-                z-index: 99999;
-                font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-                user-select: none;
-                pointer-events: auto;
-                backdrop-filter: blur(4px);
-                border: 1px solid rgba(255,255,255,0.15);
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0,0,0,0.4);
+                z-index: 2147483646;
                 display: flex;
                 align-items: center;
-                gap: 8px;
-                box-shadow: 0 2px 12px rgba(0,0,0,0.3);
-            }
-            #bili-lite-counter button {
-                background: rgba(255,255,255,0.15);
-                border: none;
-                color: #fff;
-                padding: 2px 8px;
-                border-radius: 12px;
-                cursor: pointer;
-                font-size: 12px;
-                transition: background 0.2s;
-            }
-            #bili-lite-counter button:hover {
-                background: rgba(255,255,255,0.3);
-            }
-            #bili-lite-counter .badge {
-                background: #fb7299;
-                color: #fff;
-                border-radius: 12px;
-                padding: 0 8px;
-                font-weight: bold;
-                font-size: 12px;
-            }
-            #bili-lite-toggle {
-                position: fixed;
-                bottom: 20px;
-                right: 20px;
-                background: rgba(0, 0, 0, 0.7);
-                color: #fff;
-                border: 1px solid rgba(255,255,255,0.15);
-                border-radius: 30px;
-                padding: 8px 16px;
-                font-size: 13px;
-                z-index: 99999;
-                cursor: pointer;
-                backdrop-filter: blur(4px);
-                box-shadow: 0 2px 12px rgba(0,0,0,0.3);
+                justify-content: center;
                 font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-                transition: all 0.2s;
-                user-select: none;
             }
-            #bili-lite-toggle:hover {
-                background: rgba(0, 0, 0, 0.85);
-                transform: scale(1.05);
-            }
-            #bili-lite-config-panel {
-                position: fixed;
-                top: 50%;
-                left: 50%;
-                transform: translate(-50%, -50%);
+            .bili-compact-panel {
                 background: #1e1e1e;
                 color: #eee;
                 padding: 24px 30px;
                 border-radius: 16px;
-                z-index: 100000;
                 box-shadow: 0 8px 40px rgba(0,0,0,0.6);
-                font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
                 min-width: 320px;
                 border: 1px solid #333;
-                display: none;
+                backdrop-filter: blur(8px);
+                display: flex;
                 flex-direction: column;
                 gap: 14px;
-                backdrop-filter: blur(8px);
+                position: relative;
             }
-            #bili-lite-config-panel.active {
-                display: flex;
-            }
-            #bili-lite-config-panel h3 {
+            .bili-compact-panel h3 {
                 margin: 0 0 4px 0;
                 font-weight: 500;
                 color: #fff;
+                font-size: 16px;
             }
-            #bili-lite-config-panel label {
+            .bili-compact-panel label {
                 display: flex;
                 justify-content: space-between;
                 align-items: center;
                 font-size: 14px;
+                color: #ccc;
             }
-            #bili-lite-config-panel input[type="number"],
-            #bili-lite-config-panel input[type="text"] {
+            .bili-compact-panel input[type="number"],
+            .bili-compact-panel input[type="text"] {
                 background: #2a2a2a;
                 border: 1px solid #444;
                 color: #fff;
@@ -507,20 +434,24 @@
                 border-radius: 6px;
                 width: 80px;
                 font-size: 14px;
+                font-family: inherit;
             }
-            #bili-lite-config-panel input[type="checkbox"] {
+            .bili-compact-panel input[type="text"] {
+                width: 160px;
+            }
+            .bili-compact-panel input[type="checkbox"] {
                 accent-color: #fb7299;
                 width: 18px;
                 height: 18px;
                 cursor: pointer;
             }
-            #bili-lite-config-panel .btn-row {
+            .bili-compact-panel .btn-row {
                 display: flex;
                 gap: 10px;
                 justify-content: flex-end;
                 margin-top: 6px;
             }
-            #bili-lite-config-panel button {
+            .bili-compact-panel button {
                 background: #fb7299;
                 border: none;
                 color: #fff;
@@ -528,192 +459,113 @@
                 border-radius: 20px;
                 cursor: pointer;
                 font-size: 14px;
+                font-family: inherit;
                 transition: background 0.2s;
             }
-            #bili-lite-config-panel button.secondary {
+            .bili-compact-panel button.secondary {
                 background: #444;
             }
-            #bili-lite-config-panel button:hover {
+            .bili-compact-panel button:hover {
                 background: #ff85a8;
             }
-            #bili-lite-config-panel button.secondary:hover {
+            .bili-compact-panel button.secondary:hover {
                 background: #555;
             }
-            #bili-lite-config-panel .hint {
+            .bili-compact-panel .hint {
                 font-size: 12px;
                 color: #888;
                 margin-top: -6px;
             }
-            .bili-lite-overlay {
-                position: fixed;
-                top: 0;
-                left: 0;
-                width: 100%;
-                height: 100%;
-                background: rgba(0,0,0,0.4);
-                z-index: 99999;
-                display: none;
+            .bili-compact-panel .status-row {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                font-size: 14px;
+                color: #ccc;
             }
-            .bili-lite-overlay.active {
-                display: block;
+            .bili-compact-panel .status-badge {
+                background: #fb7299;
+                color: #fff;
+                border-radius: 12px;
+                padding: 2px 12px;
+                font-size: 12px;
+                font-weight: bold;
             }
-        `);
-    }
-
-    function createCounter() {
-        const existing = document.getElementById('bili-lite-counter');
-        if (existing) existing.remove();
-
-        const div = document.createElement('div');
-        div.id = 'bili-lite-counter';
-        div.innerHTML = `
-            <span>📺 <span id="bili-lite-count-text">0/0</span></span>
-            <button id="bili-lite-show-all">显示全部</button>
-            <span class="badge" id="bili-lite-status">精简中</span>
+            .bili-compact-panel .status-badge.off {
+                background: #666;
+            }
         `;
-        document.body.appendChild(div);
-
-        // 显示全部按钮
-        document.getElementById('bili-lite-show-all').addEventListener('click', function() {
-            if (isActive) {
-                isActive = false;
-                this.textContent = '恢复精简';
-                document.getElementById('bili-lite-status').textContent = '已暂停';
-                restoreAllVideos();
-                // 更新切换按钮状态
-                const toggleBtn = document.getElementById('bili-lite-toggle');
-                if (toggleBtn) toggleBtn.textContent = '🟢 精简已关闭';
-            } else {
-                isActive = true;
-                this.textContent = '显示全部';
-                document.getElementById('bili-lite-status').textContent = '精简中';
-                limitVideos();
-                const toggleBtn = document.getElementById('bili-lite-toggle');
-                if (toggleBtn) toggleBtn.textContent = '🔴 精简已开启';
-            }
-        });
-
-        if (!config.showCounter) {
-            div.style.display = 'none';
-        }
-        return div;
+        document.head.appendChild(styleEl);
     }
 
-    function updateCounter(total, shown, hidden) {
-        const counter = document.getElementById('bili-lite-counter');
-        if (!counter || !config.showCounter) return;
-        const text = document.getElementById('bili-lite-count-text');
-        if (text) {
-            text.textContent = `${shown}/${total}`;
+    let panelDestroyFn = null; // 当前面板的销毁函数
+
+    function openConfigPanel() {
+        // 如果已有面板打开，先关闭
+        if (panelDestroyFn) {
+            panelDestroyFn();
+            panelDestroyFn = null;
         }
-        const status = document.getElementById('bili-lite-status');
-        if (status) {
-            status.textContent = isActive ? `精简中 (隐藏${hidden})` : '已暂停';
-        }
-    }
 
-    function createToggleButton() {
-        const existing = document.getElementById('bili-lite-toggle');
-        if (existing) existing.remove();
+        // 确保样式已注入
+        injectPanelStyles();
 
-        const btn = document.createElement('button');
-        btn.id = 'bili-lite-toggle';
-        btn.textContent = isActive ? '🔴 精简已开启' : '🟢 精简已关闭';
-        btn.title = '点击切换精简模式';
-        document.body.appendChild(btn);
-
-        btn.addEventListener('click', function() {
-            isActive = !isActive;
-            if (isActive) {
-                this.textContent = '🔴 精简已开启';
-                limitVideos();
-                // 恢复计数器显示
-                const counter = document.getElementById('bili-lite-counter');
-                if (counter && config.showCounter) counter.style.display = '';
-                // 更新显示全部按钮
-                const showAllBtn = document.getElementById('bili-lite-show-all');
-                if (showAllBtn) showAllBtn.textContent = '显示全部';
-                document.getElementById('bili-lite-status').textContent = '精简中';
-            } else {
-                this.textContent = '🟢 精简已关闭';
-                restoreAllVideos();
-                const counter = document.getElementById('bili-lite-counter');
-                if (counter) counter.style.display = 'none';
-            }
-        });
-
-        if (!config.showToggleBtn) {
-            btn.style.display = 'none';
-        }
-        return btn;
-    }
-
-    // ======================== 配置面板 ========================
-    let configPanelVisible = false;
-
-    function createConfigPanel() {
+        // 创建遮罩层
         const overlay = document.createElement('div');
-        overlay.id = 'bili-lite-overlay';
-        overlay.className = 'bili-lite-overlay';
-        document.body.appendChild(overlay);
+        overlay.className = 'bili-compact-overlay';
 
+        // 创建面板
         const panel = document.createElement('div');
-        panel.id = 'bili-lite-config-panel';
+        panel.className = 'bili-compact-panel';
         panel.innerHTML = `
-            <h3>⚙️ B站精简设置</h3>
+            <h3>B站精简设置</h3>
+            <div class="status-row">
+                <span>当前状态</span>
+                <span class="status-badge ${isActive ? '' : 'off'}" id="cfg-status-badge">${isActive ? '精简中' : '已暂停'}</span>
+            </div>
             <label>最大显示数量 <input type="number" id="cfg-max" value="${config.maxVideos}" min="1" max="100"></label>
             <label>排除直播 <input type="checkbox" id="cfg-exclude-live" ${config.excludeLive ? 'checked' : ''}></label>
             <label>排除广告 <input type="checkbox" id="cfg-exclude-ad" ${config.excludeAd ? 'checked' : ''}></label>
             <label>排除番剧 <input type="checkbox" id="cfg-exclude-bangumi" ${config.excludeBangumi ? 'checked' : ''}></label>
             <label>排除付费课程 <input type="checkbox" id="cfg-exclude-paid" ${config.excludePaid ? 'checked' : ''}></label>
             <label>保留推广位 <input type="checkbox" id="cfg-keep-promoted" ${config.keepPromoted ? 'checked' : ''}></label>
-            <label>显示计数器 <input type="checkbox" id="cfg-show-counter" ${config.showCounter ? 'checked' : ''}></label>
-            <label>显示切换按钮 <input type="checkbox" id="cfg-show-toggle" ${config.showToggleBtn ? 'checked' : ''}></label>
             <label>启用快捷键 <input type="checkbox" id="cfg-enable-shortcuts" ${config.enableShortcuts ? 'checked' : ''}></label>
-            <label>保留UP主ID（逗号分隔） <input type="text" id="cfg-keep-uids" value="${(config.keepSpecialUPIDs || []).join(',')}" style="width:160px;"></label>
-            <div class="hint">快捷键: Ctrl+Shift+数字 快速调整数量（如 Ctrl+Shift+5 设为5）</div>
+            <label>保留UP主ID（逗号分隔） <input type="text" id="cfg-keep-uids" value="${(config.keepSpecialUPIDs || []).join(',')}"></label>
+            <label>调试模式 <input type="checkbox" id="cfg-debug" ${config.debug ? 'checked' : ''}></label>
+            <div class="hint">快捷键: Ctrl+Shift+数字 快速调整数量（如 Ctrl+Shift+5 设为5，0 关闭精简）</div>
             <div class="btn-row">
+                <button class="secondary" id="cfg-toggle">${isActive ? '暂停精简' : '启用精简'}</button>
                 <button class="secondary" id="cfg-reset">恢复默认</button>
                 <button id="cfg-save">保存并应用</button>
             </div>
         `;
-        document.body.appendChild(panel);
 
-        // 事件
+        overlay.appendChild(panel);
+        document.body.appendChild(overlay);
+
+        // —— 事件绑定 ——
+
+        // 保存
         document.getElementById('cfg-save').addEventListener('click', function() {
             const max = parseInt(document.getElementById('cfg-max').value) || 10;
-            const excludeLive = document.getElementById('cfg-exclude-live').checked;
-            const excludeAd = document.getElementById('cfg-exclude-ad').checked;
-            const excludeBangumi = document.getElementById('cfg-exclude-bangumi').checked;
-            const excludePaid = document.getElementById('cfg-exclude-paid').checked;
-            const keepPromoted = document.getElementById('cfg-keep-promoted').checked;
-            const showCounter = document.getElementById('cfg-show-counter').checked;
-            const showToggleBtn = document.getElementById('cfg-show-toggle').checked;
-            const enableShortcuts = document.getElementById('cfg-enable-shortcuts').checked;
-            const keepUids = document.getElementById('cfg-keep-uids').value.split(',').map(s => s.trim()).filter(Boolean).map(Number);
-
             const newConfig = {
                 maxVideos: max,
-                excludeLive,
-                excludeAd,
-                excludeBangumi,
-                excludePaid,
-                keepPromoted,
-                showCounter,
-                showToggleBtn,
-                enableShortcuts,
-                keepSpecialUPIDs: keepUids,
-                debug: config.debug
+                excludeLive: document.getElementById('cfg-exclude-live').checked,
+                excludeAd: document.getElementById('cfg-exclude-ad').checked,
+                excludeBangumi: document.getElementById('cfg-exclude-bangumi').checked,
+                excludePaid: document.getElementById('cfg-exclude-paid').checked,
+                keepPromoted: document.getElementById('cfg-keep-promoted').checked,
+                enableShortcuts: document.getElementById('cfg-enable-shortcuts').checked,
+                keepSpecialUPIDs: document.getElementById('cfg-keep-uids').value.split(',').map(s => s.trim()).filter(Boolean).map(Number),
+                debug: document.getElementById('cfg-debug').checked
             };
             Object.assign(config, newConfig);
             saveConfig(config);
-            hideConfigPanel();
-            // 重新应用
+            destroyPanel();
             limitVideos();
-            // 刷新UI
-            refreshUI();
         });
 
+        // 重置
         document.getElementById('cfg-reset').addEventListener('click', function() {
             Object.assign(config, DEFAULTS);
             saveConfig(config);
@@ -724,61 +576,59 @@
             document.getElementById('cfg-exclude-bangumi').checked = config.excludeBangumi;
             document.getElementById('cfg-exclude-paid').checked = config.excludePaid;
             document.getElementById('cfg-keep-promoted').checked = config.keepPromoted;
-            document.getElementById('cfg-show-counter').checked = config.showCounter;
-            document.getElementById('cfg-show-toggle').checked = config.showToggleBtn;
             document.getElementById('cfg-enable-shortcuts').checked = config.enableShortcuts;
-            document.getElementById('cfg-keep-uids').value = (config.keepSpecialUPIDs || []).join(',');
+            document.getElementById('cfg-debug').checked = config.debug;
+            document.getElementById('cfg-keep-uids').value = '';
             limitVideos();
-            refreshUI();
         });
 
+        // 切换精简状态
+        document.getElementById('cfg-toggle').addEventListener('click', function() {
+            isActive = !isActive;
+            if (isActive) {
+                limitVideos();
+            } else {
+                restoreAllVideos();
+            }
+            const badge = document.getElementById('cfg-status-badge');
+            if (badge) {
+                badge.textContent = isActive ? '精简中' : '已暂停';
+                badge.className = 'status-badge' + (isActive ? '' : ' off');
+            }
+            this.textContent = isActive ? '暂停精简' : '启用精简';
+        });
+
+        // 点击遮罩关闭
         overlay.addEventListener('click', function(e) {
             if (e.target === overlay) {
-                hideConfigPanel();
+                destroyPanel();
             }
         });
 
-        // 点击面板外部不关闭（由overlay处理）
-        return panel;
+        // ESC 关闭
+        function onKeyDown(e) {
+            if (e.key === 'Escape') {
+                destroyPanel();
+            }
+        }
+        document.addEventListener('keydown', onKeyDown);
+
+        // —— 销毁函数 ——
+        function destroyPanel() {
+            document.removeEventListener('keydown', onKeyDown);
+            if (overlay.parentNode) {
+                overlay.parentNode.removeChild(overlay);
+            }
+            panelDestroyFn = null;
+        }
+
+        panelDestroyFn = destroyPanel;
     }
 
-    function showConfigPanel() {
-        const panel = document.getElementById('bili-lite-config-panel');
-        const overlay = document.getElementById('bili-lite-overlay');
-        if (panel) {
-            panel.classList.add('active');
-            overlay.classList.add('active');
-            configPanelVisible = true;
-        }
-    }
-
-    function hideConfigPanel() {
-        const panel = document.getElementById('bili-lite-config-panel');
-        const overlay = document.getElementById('bili-lite-overlay');
-        if (panel) {
-            panel.classList.remove('active');
-            overlay.classList.remove('active');
-            configPanelVisible = false;
-        }
-    }
-
-    function refreshUI() {
-        // 重新创建计数器与按钮（或更新显示）
-        const counter = document.getElementById('bili-lite-counter');
-        if (counter) {
-            if (config.showCounter) counter.style.display = '';
-            else counter.style.display = 'none';
-        }
-        const toggleBtn = document.getElementById('bili-lite-toggle');
-        if (toggleBtn) {
-            if (config.showToggleBtn) toggleBtn.style.display = '';
-            else toggleBtn.style.display = 'none';
-            toggleBtn.textContent = isActive ? '🔴 精简已开启' : '🟢 精简已关闭';
-        }
-        // 更新状态文本
-        const status = document.getElementById('bili-lite-status');
-        if (status) {
-            status.textContent = isActive ? '精简中' : '已暂停';
+    function closeConfigPanel() {
+        if (panelDestroyFn) {
+            panelDestroyFn();
+            panelDestroyFn = null;
         }
     }
 
@@ -794,45 +644,18 @@
                     if (isActive) {
                         isActive = false;
                         restoreAllVideos();
-                        refreshUI();
-                        const showAllBtn = document.getElementById('bili-lite-show-all');
-                        if (showAllBtn) showAllBtn.textContent = '恢复精简';
-                        document.getElementById('bili-lite-status').textContent = '已暂停';
                     }
                 } else {
                     // 1-9 设置数量
                     config.maxVideos = num;
                     saveConfig({ maxVideos: num });
-                    // 更新面板输入
-                    const input = document.getElementById('cfg-max');
-                    if (input) input.value = num;
                     if (!isActive) {
                         isActive = true;
-                        const showAllBtn = document.getElementById('bili-lite-show-all');
-                        if (showAllBtn) showAllBtn.textContent = '显示全部';
-                        document.getElementById('bili-lite-status').textContent = '精简中';
                     }
                     limitVideos();
-                    refreshUI();
-                    // 显示提示
-                    const counter = document.getElementById('bili-lite-counter');
-                    if (counter) {
-                        const oldText = counter.innerHTML;
-                        counter.innerHTML = `✅ 已设为 ${num} 个视频`;
-                        setTimeout(() => {
-                            counter.innerHTML = oldText;
-                            // 重新绑定事件（略繁琐，但简单起见刷新整个计数器）
-                            // 但因为我们动态更新，可重新创建
-                            // 直接重新创建计数器会丢失事件，但我们可以更新文本
-                            // 简单做法：重新创建
-                            const countText = document.getElementById('bili-lite-count-text');
-                            if (countText) {
-                                // 已存在则更新
-                                limitVideos(); // 会自动更新计数器
-                            }
-                        }, 1500);
-                    }
                 }
+                // 非侵入式反馈：使用 GM_notification 或静默执行（用户立即看到结果）
+                log(`快捷键: ${num === 0 ? '关闭精简' : '设为 ' + num + ' 个视频'}`);
             }
         });
     }
@@ -848,11 +671,9 @@
         if (!container) return;
 
         observer = new MutationObserver(function(mutations) {
-            // 精细过滤：只关心子节点增加或减少
             let shouldProcess = false;
             for (const mutation of mutations) {
                 if (mutation.type === 'childList' && (mutation.addedNodes.length > 0 || mutation.removedNodes.length > 0)) {
-                    // 检查是否有视频卡片相关的节点
                     for (const node of mutation.addedNodes) {
                         if (node.nodeType === 1) {
                             const sel = detectSelector();
@@ -878,7 +699,6 @@
             }
 
             if (shouldProcess) {
-                // 防抖+节流
                 const now = Date.now();
                 if (now - lastRun < THROTTLE_INTERVAL) {
                     clearTimeout(debounceTimer);
@@ -909,11 +729,9 @@
             if (location.href !== lastUrl) {
                 lastUrl = location.href;
                 log('URL变化:', lastUrl);
-                // 清空选择器缓存，因为新页面可能不同
                 effectiveSelector = null;
                 videoListContainer = null;
                 setTimeout(() => {
-                    // 重新探测并应用
                     detectSelector();
                     detectContainer();
                     limitVideos();
@@ -922,28 +740,39 @@
         }, 1000);
     }
 
-    // ======================== 菜单命令 ========================
+    // ======================== 菜单命令（唯一入口） ========================
     function registerMenu() {
-        GM_registerMenuCommand('⚙️ B站精简设置', function() {
-            if (configPanelVisible) {
-                hideConfigPanel();
-            } else {
-                showConfigPanel();
-            }
+        GM_registerMenuCommand('B站精简设置', function() {
+            openConfigPanel();
         });
-        GM_registerMenuCommand('🔄 手动刷新精简', function() {
+        GM_registerMenuCommand('手动刷新精简', function() {
             effectiveSelector = null;
             videoListContainer = null;
             limitVideos();
         });
-        GM_registerMenuCommand('📊 切换精简状态', function() {
+        GM_registerMenuCommand('切换精简状态', function() {
             isActive = !isActive;
             if (isActive) {
                 limitVideos();
             } else {
                 restoreAllVideos();
             }
-            refreshUI();
+            log('精简状态:', isActive ? '已开启' : '已关闭');
+        });
+        GM_registerMenuCommand('快速设数量', function() {
+            const num = prompt('输入最大显示视频数量（1-100）：', config.maxVideos);
+            if (num !== null) {
+                const n = parseInt(num);
+                if (n >= 1 && n <= 100) {
+                    config.maxVideos = n;
+                    saveConfig({ maxVideos: n });
+                    if (!isActive) {
+                        isActive = true;
+                    }
+                    limitVideos();
+                    log('已设置最大数量:', n);
+                }
+            }
         });
     }
 
@@ -954,15 +783,10 @@
             config = getConfig();
             log('配置加载完成:', config);
 
-            // 注入样式
+            // 注入样式（仅过滤类，不注入任何UI节点）
             injectStyles();
 
-            // 创建UI
-            createCounter();
-            createToggleButton();
-            createConfigPanel();
-
-            // 注册菜单
+            // 注册菜单（TM菜单是唯一入口，不在页面注入UI）
             registerMenu();
 
             // 启动观察
@@ -981,24 +805,18 @@
                 limitVideos();
             }, 500);
 
-            // 定时后备（每5秒检查一次，但只在必要时执行）
+            // 定时后备检查
             setInterval(() => {
                 if (isActive) {
-                    // 检查是否有新的视频卡片未被隐藏（由于动态加载可能漏掉）
-                    // 但我们的观察者应该能捕获，这里作为后备
                     const selector = detectSelector();
                     if (selector) {
                         const cards = document.querySelectorAll(selector);
-                        let hiddenCount = 0;
                         let visibleCount = 0;
                         for (const card of cards) {
-                            if (card.style.display === 'none' || card.classList.contains('bili-limited-hide')) {
-                                hiddenCount++;
-                            } else {
+                            if (!(card.style.display === 'none' || card.classList.contains('bili-limited-hide'))) {
                                 visibleCount++;
                             }
                         }
-                        // 如果可见数量大于配置，说明可能漏掉了，重新执行
                         if (visibleCount > config.maxVideos) {
                             log('定时器检测到可见视频过多，重新执行限制');
                             limitVideos();
@@ -1007,7 +825,7 @@
                 }
             }, 5000);
 
-            log('🚀 脚本初始化完成，当前配置:', config);
+            log(' 脚本初始化完成，当前配置:', config);
 
         } catch (e) {
             errorLog('初始化失败:', e);
