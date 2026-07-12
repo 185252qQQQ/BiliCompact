@@ -1,8 +1,9 @@
 // ==UserScript==
 // @name         更重的网页端B站精简
 // @namespace    http://tampermonkey.net/
-// @version      2.2.1
-// @description  你是否厌倦了B站网页端极多视频？想要更简要的界面？这个插件将帮助你只显示指定数量的视频，支持多种页面、黑/白名单、快捷键，配置持久化。非侵入式设计，不在B站页面注入任何UI元素。支持简中/繁中/English。
+// @version      2.3.0
+// @license MIT
+// @description  你是否厌倦了B站网页端极多视频？想要更简要的界面？这个插件将帮助你只显示指定数量的视频，支持多种页面、黑/白名单、快捷键，配置持久化。非侵入式设计，不在B站页面注入任何UI元素。支持简中，繁中，英语。Are you tired of the overwhelming number of videos on Bilibili's web interface? Want a cleaner layout? This extension helps you display only a specified number of videos, with support for multiple pages, black/white lists, keyboard shortcuts, and persistent configuration. Its non-intrusive design injects no UI elements into Bilibili pages. Supports Simplified Chinese, Traditional Chinese, and English.
 // @author       暮雨终将落下
 // @match        https://www.bilibili.com/
 // @match        https://www.bilibili.com/?*
@@ -41,261 +42,261 @@
     const I18N = {
         zh_CN: {
             // Log
-            log_prefix: '[B站精简]',
-            log_selector_data: '通过data属性探测到选择器:',
-            log_selector_found: '探测到选择器:',
-            log_selector_fallback: '通过链接回退探测到选择器:',
-            log_no_cards: '未找到视频卡片，跳过',
-            log_still_no_cards: '仍未找到视频卡片',
-            log_processed: '已处理: 总视频 {0}, 显示 {1}, 隐藏 {2}',
-            log_error_limit: 'limitVideos 出错:',
-            log_container_found: '探测到容器:',
-            log_config_loaded: '配置加载完成:',
-            log_shortcut: '快捷键: {0}',
-            log_status: '精简状态: {0}',
-            log_status_on: '已开启',
-            log_status_off: '已关闭',
-            log_quick_set: '已设置最大数量:',
-            log_timer_retry: '定时器检测到可见视频过多，重新执行限制',
-            log_init_done: '脚本初始化完成，当前配置:',
-            log_init_error: '初始化失败:',
-            log_observer_started: 'MutationObserver 已启动，监听容器:',
-            log_url_changed: 'URL变化:',
+            LogPrefix: '[B站精简]',
+            LogSelectorData: '通过data属性探测到选择器:',
+            LogSelectorFound: '探测到选择器:',
+            LogSelectorFallback: '通过链接回退探测到选择器:',
+            LogNoCards: '未找到视频卡片，跳过',
+            LogStillNoCards: '仍未找到视频卡片',
+            LogProcessed: '已处理: 总视频 {0}, 显示 {1}, 隐藏 {2}',
+            LogErrorLimit: 'limitVideos 出错:',
+            LogContainerFound: '探测到容器:',
+            LogConfigLoaded: '配置加载完成:',
+            LogShortcut: '快捷键: {0}',
+            LogStatus: '精简状态: {0}',
+            LogStatusOn: '已开启',
+            LogStatusOff: '已关闭',
+            LogQuickSet: '已设置最大数量:',
+            LogTimerRetry: '定时器检测到可见视频过多，重新执行限制',
+            LogInitDone: '脚本初始化完成，当前配置:',
+            LogInitError: '初始化失败:',
+            LogObserverStarted: 'MutationObserver 已启动，监听容器:',
+            LogUrlChanged: 'URL变化:',
 
             // Menu
-            menu_settings: 'B站精简设置',
-            menu_refresh: '手动刷新精简',
-            menu_toggle: '切换精简状态',
-            menu_quick_set: '快速设数量',
+            MenuSettings: 'B站精简设置',
+            MenuRefresh: '手动刷新精简',
+            MenuToggle: '切换精简状态',
+            MenuQuickSet: '快速设数量',
 
             // Panel
-            panel_title: 'B站精简设置',
-            panel_status_label: '当前状态',
-            panel_status_active: '精简中',
-            panel_status_paused: '已暂停',
-            panel_max_videos: '最大显示数量',
-            panel_exclude_live: '排除直播',
-            panel_exclude_ad: '排除广告',
-            panel_exclude_bangumi: '排除番剧',
-            panel_exclude_paid: '排除付费课程',
-            panel_keep_promoted: '保留推广位',
-            panel_enable_shortcuts: '启用快捷键',
-            panel_keep_upids: '保留UP主ID（逗号分隔）',
-            panel_debug: '调试模式',
-            panel_language: '界面语言 / Language',
-            panel_language_auto: '自动 (Auto)',
-            panel_hint: '快捷键: Ctrl+Shift+数字 快速调整数量（如 Ctrl+Shift+5 设为5，0 关闭精简）',
-            panel_btn_pause: '暂停精简',
-            panel_btn_resume: '启用精简',
-            panel_btn_reset: '恢复默认',
-            panel_btn_save: '保存并应用',
-            panel_btn_close: '关闭',
+            PanelTitle: 'B站精简设置',
+            PanelStatusLabel: '当前状态',
+            PanelStatusActive: '精简中',
+            PanelStatusPaused: '已暂停',
+            PanelMaxVideos: '最大显示数量',
+            PanelExcludeLive: '排除直播',
+            PanelExcludeAd: '排除广告',
+            PanelExcludeBangumi: '排除番剧',
+            PanelExcludePaid: '排除付费课程',
+            PanelKeepPromoted: '保留推广位',
+            PanelEnableShortcuts: '启用快捷键',
+            PanelKeepUpids: '保留UP主ID（逗号分隔）',
+            PanelDebug: '调试模式',
+            PanelLanguage: '界面语言 / Language',
+            PanelLanguageAuto: '自动 (Auto)',
+            PanelHint: '快捷键: Ctrl+Shift+数字 快速调整数量（如 Ctrl+Shift+5 设为5，0 关闭精简）',
+            PanelBtnPause: '暂停精简',
+            PanelBtnResume: '启用精简',
+            PanelBtnReset: '恢复默认',
+            PanelBtnSave: '保存并应用',
+            PanelBtnClose: '关闭',
 
             // Prompt
-            prompt_quick_set: '输入最大显示视频数量（1-100）：',
+            PromptQuickSet: '输入最大显示视频数量（1-100）：',
         },
         zh_TW: {
             // Log
-            log_prefix: '[B站精簡]',
-            log_selector_data: '透過data屬性探測到選擇器:',
-            log_selector_found: '探測到選擇器:',
-            log_selector_fallback: '透過連結回退探測到選擇器:',
-            log_no_cards: '未找到影片卡片，跳過',
-            log_still_no_cards: '仍未找到影片卡片',
-            log_processed: '已處理: 總影片 {0}, 顯示 {1}, 隱藏 {2}',
-            log_error_limit: 'limitVideos 出錯:',
-            log_container_found: '探測到容器:',
-            log_config_loaded: '設定載入完成:',
-            log_shortcut: '快速鍵: {0}',
-            log_status: '精簡狀態: {0}',
-            log_status_on: '已開啟',
-            log_status_off: '已關閉',
-            log_quick_set: '已設定最大數量:',
-            log_timer_retry: '定時器偵測到可見影片過多，重新執行限制',
-            log_init_done: '指令碼初始化完成（非侵入式），目前設定:',
-            log_init_error: '初始化失敗:',
-            log_observer_started: 'MutationObserver 已啟動，監聽容器:',
-            log_url_changed: 'URL變化:',
+            LogPrefix: '[B站精簡]',
+            LogSelectorData: '透過data屬性探測到選擇器:',
+            LogSelectorFound: '探測到選擇器:',
+            LogSelectorFallback: '透過連結回退探測到選擇器:',
+            LogNoCards: '未找到影片卡片，跳過',
+            LogStillNoCards: '仍未找到影片卡片',
+            LogProcessed: '已處理: 總影片 {0}, 顯示 {1}, 隱藏 {2}',
+            LogErrorLimit: 'limitVideos 出錯:',
+            LogContainerFound: '探測到容器:',
+            LogConfigLoaded: '設定載入完成:',
+            LogShortcut: '快速鍵: {0}',
+            LogStatus: '精簡狀態: {0}',
+            LogStatusOn: '已開啟',
+            LogStatusOff: '已關閉',
+            LogQuickSet: '已設定最大數量:',
+            LogTimerRetry: '定時器偵測到可見影片過多，重新執行限制',
+            LogInitDone: '指令碼初始化完成（非侵入式），目前設定:',
+            LogInitError: '初始化失敗:',
+            LogObserverStarted: 'MutationObserver 已啟動，監聽容器:',
+            LogUrlChanged: 'URL變化:',
 
             // Menu
-            menu_settings: 'B站精簡設定',
-            menu_refresh: '手動重新整理精簡',
-            menu_toggle: '切換精簡狀態',
-            menu_quick_set: '快速設數量',
+            MenuSettings: 'B站精簡設定',
+            MenuRefresh: '手動重新整理精簡',
+            MenuToggle: '切換精簡狀態',
+            MenuQuickSet: '快速設數量',
 
             // Panel
-            panel_title: 'B站精簡設定',
-            panel_status_label: '目前狀態',
-            panel_status_active: '精簡中',
-            panel_status_paused: '已暫停',
-            panel_max_videos: '最大顯示數量',
-            panel_exclude_live: '排除直播',
-            panel_exclude_ad: '排除廣告',
-            panel_exclude_bangumi: '排除番劇',
-            panel_exclude_paid: '排除付費課程',
-            panel_keep_promoted: '保留推廣位',
-            panel_enable_shortcuts: '啟用快速鍵',
-            panel_keep_upids: '保留UP主ID（逗號分隔）',
-            panel_debug: '除錯模式',
-            panel_language: '介面語言 / Language',
-            panel_language_auto: '自動 (Auto)',
-            panel_hint: '快速鍵: Ctrl+Shift+數字 快速調整數量（如 Ctrl+Shift+5 設為5，0 關閉精簡）',
-            panel_btn_pause: '暫停精簡',
-            panel_btn_resume: '啟用精簡',
-            panel_btn_reset: '回復預設',
-            panel_btn_save: '儲存並套用',
-            panel_btn_close: '關閉',
+            PanelTitle: 'B站精簡設定',
+            PanelStatusLabel: '目前狀態',
+            PanelStatusActive: '精簡中',
+            PanelStatusPaused: '已暫停',
+            PanelMaxVideos: '最大顯示數量',
+            PanelExcludeLive: '排除直播',
+            PanelExcludeAd: '排除廣告',
+            PanelExcludeBangumi: '排除番劇',
+            PanelExcludePaid: '排除付費課程',
+            PanelKeepPromoted: '保留推廣位',
+            PanelEnableShortcuts: '啟用快速鍵',
+            PanelKeepUpids: '保留UP主ID（逗號分隔）',
+            PanelDebug: '除錯模式',
+            PanelLanguage: '介面語言 / Language',
+            PanelLanguageAuto: '自動 (Auto)',
+            PanelHint: '快速鍵: Ctrl+Shift+數字 快速調整數量（如 Ctrl+Shift+5 設為5，0 關閉精簡）',
+            PanelBtnPause: '暫停精簡',
+            PanelBtnResume: '啟用精簡',
+            PanelBtnReset: '回復預設',
+            PanelBtnSave: '儲存並套用',
+            PanelBtnClose: '關閉',
 
             // Prompt
-            prompt_quick_set: '輸入最大顯示影片數量（1-100）：',
+            PromptQuickSet: '輸入最大顯示影片數量（1-100）：',
         },
         en_US: {
             // Log
-            log_prefix: '[BiliCompact]',
-            log_selector_data: 'Selector detected via data attribute:',
-            log_selector_found: 'Selector detected:',
-            log_selector_fallback: 'Selector detected via link fallback:',
-            log_no_cards: 'No video cards found, skipping',
-            log_still_no_cards: 'Still no video cards found',
-            log_processed: 'Processed: total {0}, shown {1}, hidden {2}',
-            log_error_limit: 'limitVideos error:',
-            log_container_found: 'Container detected:',
-            log_config_loaded: 'Config loaded:',
-            log_shortcut: 'Shortcut: {0}',
-            log_status: 'Compact status: {0}',
-            log_status_on: 'Enabled',
-            log_status_off: 'Disabled',
-            log_quick_set: 'Max videos set to:',
-            log_timer_retry: 'Timer detected too many visible videos, re-running limit',
-            log_init_done: 'BiliCompact initialized (non-invasive), config:',
-            log_init_error: 'Initialization failed:',
-            log_observer_started: 'MutationObserver started, watching container:',
-            log_url_changed: 'URL changed:',
+            LogPrefix: '[BiliCompact]',
+            LogSelectorData: 'Selector detected via data attribute:',
+            LogSelectorFound: 'Selector detected:',
+            LogSelectorFallback: 'Selector detected via link fallback:',
+            LogNoCards: 'No video cards found, skipping',
+            LogStillNoCards: 'Still no video cards found',
+            LogProcessed: 'Processed: total {0}, shown {1}, hidden {2}',
+            LogErrorLimit: 'limitVideos error:',
+            LogContainerFound: 'Container detected:',
+            LogConfigLoaded: 'Config loaded:',
+            LogShortcut: 'Shortcut: {0}',
+            LogStatus: 'Compact status: {0}',
+            LogStatusOn: 'Enabled',
+            LogStatusOff: 'Disabled',
+            LogQuickSet: 'Max videos set to:',
+            LogTimerRetry: 'Timer detected too many visible videos, re-running limit',
+            LogInitDone: 'BiliCompact initialized (non-invasive), config:',
+            LogInitError: 'Initialization failed:',
+            LogObserverStarted: 'MutationObserver started, watching container:',
+            LogUrlChanged: 'URL changed:',
 
             // Menu
-            menu_settings: 'BiliCompact Settings',
-            menu_refresh: 'Refresh Compact',
-            menu_toggle: 'Toggle Compact',
-            menu_quick_set: 'Quick Set Count',
+            MenuSettings: 'BiliCompact Settings',
+            MenuRefresh: 'Refresh Compact',
+            MenuToggle: 'Toggle Compact',
+            MenuQuickSet: 'Quick Set Count',
 
             // Panel
-            panel_title: 'BiliCompact Settings',
-            panel_status_label: 'Status',
-            panel_status_active: 'Active',
-            panel_status_paused: 'Paused',
-            panel_max_videos: 'Max videos',
-            panel_exclude_live: 'Exclude live streams',
-            panel_exclude_ad: 'Exclude ads',
-            panel_exclude_bangumi: 'Exclude bangumi',
-            panel_exclude_paid: 'Exclude paid courses',
-            panel_keep_promoted: 'Keep promoted items',
-            panel_enable_shortcuts: 'Enable shortcuts',
-            panel_keep_upids: 'Whitelist UP IDs (comma-separated)',
-            panel_debug: 'Debug mode',
-            panel_language: 'Language / 語言',
-            panel_language_auto: 'Auto',
-            panel_hint: 'Shortcuts: Ctrl+Shift+Number to set max (e.g. Ctrl+Shift+5 = 5, 0 = disable)',
-            panel_btn_pause: 'Pause',
-            panel_btn_resume: 'Resume',
-            panel_btn_reset: 'Reset Defaults',
-            panel_btn_save: 'Save & Apply',
-            panel_btn_close: 'Close',
+            PanelTitle: 'BiliCompact Settings',
+            PanelStatusLabel: 'Status',
+            PanelStatusActive: 'Active',
+            PanelStatusPaused: 'Paused',
+            PanelMaxVideos: 'Max videos',
+            PanelExcludeLive: 'Exclude live streams',
+            PanelExcludeAd: 'Exclude ads',
+            PanelExcludeBangumi: 'Exclude bangumi',
+            PanelExcludePaid: 'Exclude paid courses',
+            PanelKeepPromoted: 'Keep promoted items',
+            PanelEnableShortcuts: 'Enable shortcuts',
+            PanelKeepUpids: 'Whitelist UP IDs (comma-separated)',
+            PanelDebug: 'Debug mode',
+            PanelLanguage: 'Language / 語言',
+            PanelLanguageAuto: 'Auto',
+            PanelHint: 'Shortcuts: Ctrl+Shift+Number to set max (e.g. Ctrl+Shift+5 = 5, 0 = disable)',
+            PanelBtnPause: 'Pause',
+            PanelBtnResume: 'Resume',
+            PanelBtnReset: 'Reset Defaults',
+            PanelBtnSave: 'Save & Apply',
+            PanelBtnClose: 'Close',
 
             // Prompt
-            prompt_quick_set: 'Enter max videos to show (1-100):',
+            PromptQuickSet: 'Enter max videos to show (1-100):',
         }
     };
 
     // 当前生效的语言
-    let currentLang = 'zh_CN';
+    let CurrentLang = 'zh_CN';
 
-    function resolveLanguage() {
-        if (config.language && config.language !== 'auto') {
-            return config.language;
+    function ResolveLanguage() {
+        if (Config.Language && Config.Language !== 'auto') {
+            return Config.Language;
         }
-        const nav = (navigator.language || '').toLowerCase();
-        if (/^zh-(tw|hk|mo)$/i.test(nav) || /^zh-(hant)$/i.test(nav)) return 'zh_TW';
-        if (/^zh/i.test(nav)) return 'zh_CN';
-        if (/^en/i.test(nav)) return 'en_US';
+        const Nav = (navigator.language || '').toLowerCase();
+        if (/^zh-(tw|hk|mo)$/i.test(Nav) || /^zh-(hant)$/i.test(Nav)) return 'zh_TW';
+        if (/^zh/i.test(Nav)) return 'zh_CN';
+        if (/^en/i.test(Nav)) return 'en_US';
         return 'zh_CN'; // fallback
     }
 
-    function t(key, ...args) {
-        const map = I18N[currentLang] || I18N['zh_CN'];
-        let str = map[key];
-        if (str === undefined) {
+    function T(Key, ...Args) {
+        const Map = I18N[CurrentLang] || I18N['zh_CN'];
+        let Str = Map[Key];
+        if (Str === undefined) {
             // Fallback to zh_CN if key missing in current locale
-            str = I18N['zh_CN'][key];
+            Str = I18N['zh_CN'][Key];
         }
-        if (str === undefined) return key; // ultimate fallback: show the key itself
+        if (Str === undefined) return Key; // ultimate fallback: show the key itself
         // Replace placeholders {0}, {1}, {2}...
-        for (let i = 0; i < args.length; i++) {
-            str = str.replace('{' + i + '}', args[i]);
+        for (let I = 0; I < Args.length; I++) {
+            Str = Str.replace('{' + I + '}', Args[I]);
         }
-        return str;
+        return Str;
     }
 
     // ======================== 配置（默认值，会从GM存储读取） ========================
     const DEFAULTS = {
-        maxVideos: 10,                 // 最大显示数量
-        excludeLive: true,             // 排除直播
-        excludeAd: true,              // 排除广告
-        excludeBangumi: true,         // 排除番剧
-        excludePaid: true,            // 排除付费课程
-        keepSpecialUPIDs: [],         // 保留的UP主ID列表（数字）
-        keepPromoted: false,          // 保留推广位（不计入数量）
-        enableShortcuts: true,        // 启用快捷键
-        language: 'auto',             // 界面语言: auto | zh_CN | zh_TW | en_US
-        debug: false                  // 调试模式
+        MaxVideos: 10,                 // 最大显示数量
+        ExcludeLive: true,             // 排除直播
+        ExcludeAd: true,              // 排除广告
+        ExcludeBangumi: true,         // 排除番剧
+        ExcludePaid: true,            // 排除付费课程
+        KeepSpecialUPIDs: [],         // 保留的UP主ID列表（数字）
+        KeepPromoted: false,          // 保留推广位（不计入数量）
+        EnableShortcuts: true,        // 启用快捷键
+        Language: 'auto',             // 界面语言: auto | zh_CN | zh_TW | en_US
+        Debug: false                  // 调试模式
     };
 
     // ======================== 状态 ========================
-    let config = {};
-    let isActive = true;               // 是否启用精简（切换开关）
-    let effectiveSelector = null;      // 缓存的有效选择器
-    let videoListContainer = null;     // 缓存的列表容器
-    let observer = null;
-    let debounceTimer = null;
-    let lastRun = 0;
+    let Config = {};
+    let IsActive = true;               // 是否启用精简（切换开关）
+    let EffectiveSelector = null;      // 缓存的有效选择器
+    let VideoListContainer = null;     // 缓存的列表容器
+    let Observer = null;
+    let DebounceTimer = null;
+    let LastRun = 0;
     const THROTTLE_INTERVAL = 200;     // 节流间隔（ms）
 
     // ======================== 工具函数 ========================
-    function log(...args) {
-        if (config.debug) console.log(t('log_prefix'), ...args);
+    function Log(...Args) {
+        if (Config.Debug) console.log(T('LogPrefix'), ...Args);
     }
 
-    function errorLog(...args) {
-        console.error(t('log_prefix'), ...args);
+    function ErrorLog(...Args) {
+        console.error(T('LogPrefix'), ...Args);
     }
 
     // 安全获取存储
-    function getConfig() {
-        const cfg = {};
-        for (const [key, def] of Object.entries(DEFAULTS)) {
+    function GetConfig() {
+        const Cfg = {};
+        for (const [Key, Def] of Object.entries(DEFAULTS)) {
             try {
-                const val = GM_getValue(key, def);
-                cfg[key] = val;
-            } catch (e) {
-                cfg[key] = def;
+                const Val = GM_getValue(Key, Def);
+                Cfg[Key] = Val;
+            } catch (E) {
+                Cfg[Key] = Def;
             }
         }
-        return cfg;
+        return Cfg;
     }
 
-    function saveConfig(cfg) {
-        for (const [key, val] of Object.entries(cfg)) {
+    function SaveConfig(Cfg) {
+        for (const [Key, Val] of Object.entries(Cfg)) {
             try {
-                GM_setValue(key, val);
-            } catch (e) {}
+                GM_setValue(Key, Val);
+            } catch (E) {}
         }
     }
 
     // ======================== 选择器探测与缓存 ========================
-    function detectSelector() {
-        if (effectiveSelector) return effectiveSelector;
+    function DetectSelector() {
+        if (EffectiveSelector) return EffectiveSelector;
 
         // 候选选择器（优先使用标准类）
-        const candidates = [
+        const Candidates = [
             '.bili-video-card',
             '.video-item',
             '.feed-item',
@@ -307,49 +308,49 @@
         ];
 
         // 首先尝试通过 data 属性查找
-        const dataCandidates = [
+        const DataCandidates = [
             '[data-video-id]',
             '[data-aid]'
         ];
-        for (const sel of dataCandidates) {
-            const els = document.querySelectorAll(sel);
-            if (els.length > 0) {
-                for (const el of els) {
-                    const card = el.closest('.bili-video-card, .video-item, .feed-item, [class*="video-card"], [class*="feed-item"]');
-                    if (card) {
-                        effectiveSelector = (card.tagName === el.tagName) ? sel :
-                            Array.from(card.classList).map(c => '.' + c).join('');
-                        log(t('log_selector_data'), effectiveSelector);
-                        return effectiveSelector;
+        for (const Sel of DataCandidates) {
+            const Els = document.querySelectorAll(Sel);
+            if (Els.length > 0) {
+                for (const El of Els) {
+                    const Card = El.closest('.bili-video-card, .video-item, .feed-item, [class*="video-card"], [class*="feed-item"]');
+                    if (Card) {
+                        EffectiveSelector = (Card.tagName === El.tagName) ? Sel :
+                            Array.from(Card.classList).map(C => '.' + C).join('');
+                        Log(T('LogSelectorData'), EffectiveSelector);
+                        return EffectiveSelector;
                     }
                 }
             }
         }
 
         // 遍历普通候选
-        for (const sel of candidates) {
-            const els = document.querySelectorAll(sel);
-            if (els.length > 0) {
-                effectiveSelector = sel;
-                log(t('log_selector_found'), effectiveSelector);
-                return effectiveSelector;
+        for (const Sel of Candidates) {
+            const Els = document.querySelectorAll(Sel);
+            if (Els.length > 0) {
+                EffectiveSelector = Sel;
+                Log(T('LogSelectorFound'), EffectiveSelector);
+                return EffectiveSelector;
             }
         }
 
         // 最后回退：查找包含 /video/ 链接的父级卡片
-        const links = document.querySelectorAll('a[href*="/video/"]');
-        for (const link of links) {
-            let parent = link.parentElement;
-            let depth = 0;
-            while (parent && depth < 5) {
-                const cls = parent.className || '';
-                if (cls.includes('card') || cls.includes('item') || cls.includes('feed') || cls.includes('video')) {
-                    effectiveSelector = '.' + cls.split(' ').join('.');
-                    log(t('log_selector_fallback'), effectiveSelector);
-                    return effectiveSelector;
+        const Links = document.querySelectorAll('a[href*="/video/"]');
+        for (const Link of Links) {
+            let Parent = Link.parentElement;
+            let Depth = 0;
+            while (Parent && Depth < 5) {
+                const Cls = Parent.className || '';
+                if (Cls.includes('card') || Cls.includes('item') || Cls.includes('feed') || Cls.includes('video')) {
+                    EffectiveSelector = '.' + Cls.split(' ').join('.');
+                    Log(T('LogSelectorFallback'), EffectiveSelector);
+                    return EffectiveSelector;
                 }
-                parent = parent.parentElement;
-                depth++;
+                Parent = Parent.parentElement;
+                Depth++;
             }
         }
 
@@ -357,213 +358,213 @@
     }
 
     // 获取视频列表容器（缩小观察范围）
-    function detectContainer() {
-        if (videoListContainer) return videoListContainer;
-        const containers = [
+    function DetectContainer() {
+        if (VideoListContainer) return VideoListContainer;
+        const Containers = [
             '.bili-feed',
             '.feed-list',
             '.video-list',
             '.bili-video-list',
             '.recommend-container'
         ];
-        for (const sel of containers) {
-            const el = document.querySelector(sel);
-            if (el) {
-                videoListContainer = el;
-                log(t('log_container_found'), sel);
-                return el;
+        for (const Sel of Containers) {
+            const El = document.querySelector(Sel);
+            if (El) {
+                VideoListContainer = El;
+                Log(T('LogContainerFound'), Sel);
+                return El;
             }
         }
-        videoListContainer = document.body;
-        return videoListContainer;
+        VideoListContainer = document.body;
+        return VideoListContainer;
     }
 
     // ======================== 核心过滤逻辑 ========================
-    function limitVideos() {
-        if (!isActive) {
-            restoreAllVideos();
+    function LimitVideos() {
+        if (!IsActive) {
+            RestoreAllVideos();
             return;
         }
 
         try {
-            const selector = detectSelector();
-            if (!selector) {
-                log(t('log_no_cards'));
+            const Selector = DetectSelector();
+            if (!Selector) {
+                Log(T('LogNoCards'));
                 return;
             }
 
             // 获取所有卡片
-            let cards = document.querySelectorAll(selector);
-            if (cards.length === 0) {
-                const links = document.querySelectorAll('a[href*="/video/"]');
-                const parentCards = new Set();
-                for (const link of links) {
-                    let parent = link.parentElement;
-                    let depth = 0;
-                    while (parent && depth < 5) {
-                        if (parent.className && (parent.className.includes('card') || parent.className.includes('item') || parent.className.includes('feed'))) {
-                            parentCards.add(parent);
+            let Cards = document.querySelectorAll(Selector);
+            if (Cards.length === 0) {
+                const Links = document.querySelectorAll('a[href*="/video/"]');
+                const ParentCards = new Set();
+                for (const Link of Links) {
+                    let Parent = Link.parentElement;
+                    let Depth = 0;
+                    while (Parent && Depth < 5) {
+                        if (Parent.className && (Parent.className.includes('card') || Parent.className.includes('item') || Parent.className.includes('feed'))) {
+                            ParentCards.add(Parent);
                             break;
                         }
-                        parent = parent.parentElement;
-                        depth++;
+                        Parent = Parent.parentElement;
+                        Depth++;
                     }
                 }
-                cards = Array.from(parentCards);
-                if (cards.length === 0) {
-                    log(t('log_still_no_cards'));
+                Cards = Array.from(ParentCards);
+                if (Cards.length === 0) {
+                    Log(T('LogStillNoCards'));
                     return;
                 }
             }
 
-            let videoCards = Array.from(cards);
+            let VideoCards = Array.from(Cards);
 
             // 过滤非视频内容
-            videoCards = videoCards.filter(card => {
-                const text = (card.textContent || '').toLowerCase();
-                const cls = (card.className || '').toLowerCase();
+            VideoCards = VideoCards.filter(Card => {
+                const Text = (Card.textContent || '').toLowerCase();
+                const Cls = (Card.className || '').toLowerCase();
 
-                if (config.excludeLive && (cls.includes('live') || text.includes('直播') || text.includes('正在直播'))) {
+                if (Config.ExcludeLive && (Cls.includes('live') || Text.includes('直播') || Text.includes('正在直播'))) {
                     return false;
                 }
-                if (config.excludeAd && (cls.includes('ad') || cls.includes('advert') || text.includes('广告') || text.includes('sponsor'))) {
+                if (Config.ExcludeAd && (Cls.includes('ad') || Cls.includes('advert') || Text.includes('广告') || Text.includes('sponsor'))) {
                     return false;
                 }
-                if (config.excludeBangumi && (cls.includes('bangumi') || text.includes('番剧') || text.includes('追番'))) {
+                if (Config.ExcludeBangumi && (Cls.includes('bangumi') || Text.includes('番剧') || Text.includes('追番'))) {
                     return false;
                 }
-                if (config.excludePaid && (text.includes('付费') || text.includes('课程') || text.includes('￥') || text.includes('¥'))) {
+                if (Config.ExcludePaid && (Text.includes('付费') || Text.includes('课程') || Text.includes('￥') || Text.includes('¥'))) {
                     return false;
                 }
                 return true;
             });
 
             // 处理特殊保留（UP主ID）
-            if (config.keepSpecialUPIDs && config.keepSpecialUPIDs.length > 0) {
-                const keepSet = new Set(config.keepSpecialUPIDs.map(id => String(id)));
-                const kept = [];
-                const rest = [];
-                for (const card of videoCards) {
-                    const upLink = card.querySelector('a[href*="/space/"]');
-                    let upid = null;
-                    if (upLink) {
-                        const match = upLink.href.match(/\/space\/(\d+)/);
-                        if (match) upid = match[1];
+            if (Config.KeepSpecialUPIDs && Config.KeepSpecialUPIDs.length > 0) {
+                const KeepSet = new Set(Config.KeepSpecialUPIDs.map(Id => String(Id)));
+                const Kept = [];
+                const Rest = [];
+                for (const Card of VideoCards) {
+                    const UpLink = Card.querySelector('a[href*="/space/"]');
+                    let Upid = null;
+                    if (UpLink) {
+                        const Match = UpLink.href.match(/\/space\/(\d+)/);
+                        if (Match) Upid = Match[1];
                     }
-                    if (upid && keepSet.has(upid)) {
-                        kept.push(card);
+                    if (Upid && KeepSet.has(Upid)) {
+                        Kept.push(Card);
                     } else {
-                        rest.push(card);
+                        Rest.push(Card);
                     }
                 }
-                videoCards = kept.concat(rest);
+                VideoCards = Kept.concat(Rest);
             }
 
             // 保留推广位
-            let promotedCards = [];
-            if (config.keepPromoted) {
-                promotedCards = videoCards.filter(card => {
-                    const text = (card.textContent || '').toLowerCase();
-                    return text.includes('推广') || text.includes('广告') || text.includes('sponsor');
+            let PromotedCards = [];
+            if (Config.KeepPromoted) {
+                PromotedCards = VideoCards.filter(Card => {
+                    const Text = (Card.textContent || '').toLowerCase();
+                    return Text.includes('推广') || Text.includes('广告') || Text.includes('sponsor');
                 });
-                videoCards = videoCards.filter(card => !promotedCards.includes(card));
+                VideoCards = VideoCards.filter(Card => !PromotedCards.includes(Card));
             }
 
             // 处理置顶/推荐卡片
-            const topSelectors = ['.bili-feed__banner', '.bili-feed__top', '.top-banner', '.recommend-banner'];
-            let topCards = [];
-            for (const sel of topSelectors) {
-                const tops = document.querySelectorAll(sel);
-                for (const top of tops) {
-                    const innerCards = top.querySelectorAll(selector);
-                    for (const card of innerCards) {
-                        if (videoCards.includes(card)) {
-                            topCards.push(card);
-                            const idx = videoCards.indexOf(card);
-                            if (idx !== -1) videoCards.splice(idx, 1);
+            const TopSelectors = ['.bili-feed__banner', '.bili-feed__top', '.top-banner', '.recommend-banner'];
+            let TopCards = [];
+            for (const Sel of TopSelectors) {
+                const Tops = document.querySelectorAll(Sel);
+                for (const Top of Tops) {
+                    const InnerCards = Top.querySelectorAll(Selector);
+                    for (const Card of InnerCards) {
+                        if (VideoCards.includes(Card)) {
+                            TopCards.push(Card);
+                            const Idx = VideoCards.indexOf(Card);
+                            if (Idx !== -1) VideoCards.splice(Idx, 1);
                         }
                     }
                 }
             }
 
             // 限制数量
-            const max = Math.max(1, Number(config.maxVideos) || 10);
-            const toShow = videoCards.slice(0, max);
-            const toHide = videoCards.slice(max);
+            const Max = Math.max(1, Number(Config.MaxVideos) || 10);
+            const ToShow = VideoCards.slice(0, Max);
+            const ToHide = VideoCards.slice(Max);
 
             // 显示前max个
-            toShow.forEach(card => {
-                card.classList.remove('bili-limited-hide');
-                card.style.display = '';
-                card.style.visibility = '';
-                card.style.opacity = '';
-                card.style.height = '';
-                card.style.margin = '';
-                card.style.padding = '';
-                card.style.overflow = '';
-                card.style.position = '';
-                card.style.flex = '';
+            ToShow.forEach(Card => {
+                Card.classList.remove('BiliLimitedHide');
+                Card.style.display = '';
+                Card.style.visibility = '';
+                Card.style.opacity = '';
+                Card.style.height = '';
+                Card.style.margin = '';
+                Card.style.padding = '';
+                Card.style.overflow = '';
+                Card.style.position = '';
+                Card.style.flex = '';
             });
 
             // 隐藏其余
-            toHide.forEach(card => {
-                card.classList.add('bili-limited-hide');
-                card.style.display = 'none';
-                card.style.visibility = 'hidden';
-                card.style.opacity = '0';
-                card.style.height = '0';
-                card.style.margin = '0';
-                card.style.padding = '0';
-                card.style.overflow = 'hidden';
-                card.style.flex = '0 0 0';
-                card.style.position = 'absolute';
+            ToHide.forEach(Card => {
+                Card.classList.add('BiliLimitedHide');
+                Card.style.display = 'none';
+                Card.style.visibility = 'hidden';
+                Card.style.opacity = '0';
+                Card.style.height = '0';
+                Card.style.margin = '0';
+                Card.style.padding = '0';
+                Card.style.overflow = 'hidden';
+                Card.style.flex = '0 0 0';
+                Card.style.position = 'absolute';
             });
 
             // 确保推广位和置顶卡片可见
-            [...promotedCards, ...topCards].forEach(card => {
-                card.classList.remove('bili-limited-hide');
-                card.style.display = '';
-                card.style.visibility = '';
-                card.style.opacity = '';
-                card.style.height = '';
-                card.style.margin = '';
-                card.style.padding = '';
-                card.style.overflow = '';
-                card.style.position = '';
-                card.style.flex = '';
+            [...PromotedCards, ...TopCards].forEach(Card => {
+                Card.classList.remove('BiliLimitedHide');
+                Card.style.display = '';
+                Card.style.visibility = '';
+                Card.style.opacity = '';
+                Card.style.height = '';
+                Card.style.margin = '';
+                Card.style.padding = '';
+                Card.style.overflow = '';
+                Card.style.position = '';
+                Card.style.flex = '';
             });
 
-            const total = videoCards.length + promotedCards.length + topCards.length;
-            const shown = toShow.length + promotedCards.length + topCards.length;
-            log(t('log_processed', total, shown, toHide.length));
+            const Total = VideoCards.length + PromotedCards.length + TopCards.length;
+            const Shown = ToShow.length + PromotedCards.length + TopCards.length;
+            Log(T('LogProcessed', Total, Shown, ToHide.length));
 
-        } catch (e) {
-            errorLog(t('log_error_limit'), e);
+        } catch (E) {
+            ErrorLog(T('LogErrorLimit'), E);
         }
     }
 
-    function restoreAllVideos() {
-        const selector = detectSelector();
-        if (!selector) return;
-        const cards = document.querySelectorAll(selector);
-        for (const card of cards) {
-            card.classList.remove('bili-limited-hide');
-            card.style.display = '';
-            card.style.visibility = '';
-            card.style.opacity = '';
-            card.style.height = '';
-            card.style.margin = '';
-            card.style.padding = '';
-            card.style.overflow = '';
-            card.style.position = '';
-            card.style.flex = '';
+    function RestoreAllVideos() {
+        const Selector = DetectSelector();
+        if (!Selector) return;
+        const Cards = document.querySelectorAll(Selector);
+        for (const Card of Cards) {
+            Card.classList.remove('BiliLimitedHide');
+            Card.style.display = '';
+            Card.style.visibility = '';
+            Card.style.opacity = '';
+            Card.style.height = '';
+            Card.style.margin = '';
+            Card.style.padding = '';
+            Card.style.overflow = '';
+            Card.style.position = '';
+            Card.style.flex = '';
         }
     }
 
     // ======================== CSS 样式（仅过滤类和动态配置面板） ========================
-    function injectStyles() {
+    function InjectStyles() {
         GM_addStyle(`
-            .bili-limited-hide {
+            .BiliLimitedHide {
                 display: none !important;
                 visibility: hidden !important;
                 opacity: 0 !important;
@@ -579,12 +580,12 @@
     }
 
     // ======================== 配置面板（非侵入式：按需创建/销毁） ========================
-    function injectPanelStyles() {
-        if (document.getElementById('bili-compact-panel-styles')) return;
-        const styleEl = document.createElement('style');
-        styleEl.id = 'bili-compact-panel-styles';
-        styleEl.textContent = `
-            .bili-compact-overlay {
+    function InjectPanelStyles() {
+        if (document.getElementById('BiliCompactPanelStyles')) return;
+        const StyleEl = document.createElement('style');
+        StyleEl.id = 'BiliCompactPanelStyles';
+        StyleEl.textContent = `
+            .BiliCompactOverlay {
                 position: fixed;
                 top: 0;
                 left: 0;
@@ -598,7 +599,7 @@
                 font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
                 font-size: 14px;
             }
-            .bili-compact-panel {
+            .BiliCompactPanel {
                 background: #1e1e1e;
                 color: #eee;
                 padding: 24px 30px;
@@ -615,13 +616,13 @@
                 max-height: 85vh;
                 overflow-y: auto;
             }
-            .bili-compact-panel h3 {
+            .BiliCompactPanel h3 {
                 margin: 0 0 4px 0;
                 font-weight: 500;
                 color: #fff;
                 font-size: 16px;
             }
-            .bili-compact-panel label {
+            .BiliCompactPanel label {
                 display: flex;
                 justify-content: space-between;
                 align-items: center;
@@ -629,8 +630,8 @@
                 color: #ccc;
                 gap: 8px;
             }
-            .bili-compact-panel input[type="number"],
-            .bili-compact-panel input[type="text"] {
+            .BiliCompactPanel input[type="number"],
+            .BiliCompactPanel input[type="text"] {
                 background: #2a2a2a;
                 border: 1px solid #444;
                 color: #fff;
@@ -640,10 +641,10 @@
                 font-size: 14px;
                 font-family: inherit;
             }
-            .bili-compact-panel input[type="text"] {
+            .BiliCompactPanel input[type="text"] {
                 width: 140px;
             }
-            .bili-compact-panel select {
+            .BiliCompactPanel select {
                 background: #2a2a2a;
                 border: 1px solid #444;
                 color: #fff;
@@ -653,20 +654,20 @@
                 font-family: inherit;
                 cursor: pointer;
             }
-            .bili-compact-panel input[type="checkbox"] {
+            .BiliCompactPanel input[type="checkbox"] {
                 accent-color: #fb7299;
                 width: 18px;
                 height: 18px;
                 cursor: pointer;
             }
-            .bili-compact-panel .btn-row {
+            .BiliCompactPanel .BtnRow {
                 display: flex;
                 gap: 10px;
                 justify-content: flex-end;
                 margin-top: 6px;
                 flex-wrap: wrap;
             }
-            .bili-compact-panel button {
+            .BiliCompactPanel button {
                 background: #fb7299;
                 border: none;
                 color: #fff;
@@ -677,29 +678,29 @@
                 font-family: inherit;
                 transition: background 0.2s;
             }
-            .bili-compact-panel button.secondary {
+            .BiliCompactPanel button.Secondary {
                 background: #444;
             }
-            .bili-compact-panel button:hover {
+            .BiliCompactPanel button:hover {
                 background: #ff85a8;
             }
-            .bili-compact-panel button.secondary:hover {
+            .BiliCompactPanel button.Secondary:hover {
                 background: #555;
             }
-            .bili-compact-panel .hint {
+            .BiliCompactPanel .Hint {
                 font-size: 12px;
                 color: #888;
                 margin-top: -4px;
                 line-height: 1.4;
             }
-            .bili-compact-panel .status-row {
+            .BiliCompactPanel .StatusRow {
                 display: flex;
                 align-items: center;
                 justify-content: space-between;
                 font-size: 14px;
                 color: #ccc;
             }
-            .bili-compact-panel .status-badge {
+            .BiliCompactPanel .StatusBadge {
                 background: #fb7299;
                 color: #fff;
                 border-radius: 12px;
@@ -707,373 +708,373 @@
                 font-size: 12px;
                 font-weight: bold;
             }
-            .bili-compact-panel .status-badge.off {
+            .BiliCompactPanel .StatusBadge.Off {
                 background: #666;
             }
         `;
-        document.head.appendChild(styleEl);
+        document.head.appendChild(StyleEl);
     }
 
-    let panelDestroyFn = null;
+    let PanelDestroyFn = null;
 
-    function openConfigPanel() {
-        if (panelDestroyFn) {
-            panelDestroyFn();
-            panelDestroyFn = null;
+    function OpenConfigPanel() {
+        if (PanelDestroyFn) {
+            PanelDestroyFn();
+            PanelDestroyFn = null;
         }
 
-        injectPanelStyles();
+        InjectPanelStyles();
 
-        const overlay = document.createElement('div');
-        overlay.className = 'bili-compact-overlay';
+        const Overlay = document.createElement('div');
+        Overlay.className = 'BiliCompactOverlay';
 
-        const panel = document.createElement('div');
-        panel.className = 'bili-compact-panel';
+        const Panel = document.createElement('div');
+        Panel.className = 'BiliCompactPanel';
 
         // 语言选项
-        const langOptions = [
-            { value: 'auto',  label: t('panel_language_auto') },
-            { value: 'zh_CN', label: '简体中文' },
-            { value: 'zh_TW', label: '繁體中文' },
-            { value: 'en_US', label: 'English' },
+        const LangOptions = [
+            { Value: 'auto',  Label: T('PanelLanguageAuto') },
+            { Value: 'zh_CN', Label: '简体中文' },
+            { Value: 'zh_TW', Label: '繁體中文' },
+            { Value: 'en_US', Label: 'English' },
         ];
-        const langSelectHTML = langOptions.map(opt =>
-            `<option value="${opt.value}" ${config.language === opt.value ? 'selected' : ''}>${opt.label}</option>`
+        const LangSelectHTML = LangOptions.map(Opt =>
+            `<option value="${Opt.Value}" ${Config.Language === Opt.Value ? 'selected' : ''}>${Opt.Label}</option>`
         ).join('');
 
-        panel.innerHTML = `
-            <h3>${t('panel_title')}</h3>
-            <div class="status-row">
-                <span>${t('panel_status_label')}</span>
-                <span class="status-badge ${isActive ? '' : 'off'}" id="cfg-status-badge">${isActive ? t('panel_status_active') : t('panel_status_paused')}</span>
+        Panel.innerHTML = `
+            <h3>${T('PanelTitle')}</h3>
+            <div class="StatusRow">
+                <span>${T('PanelStatusLabel')}</span>
+                <span class="StatusBadge ${IsActive ? '' : 'Off'}" id="CfgStatusBadge">${IsActive ? T('PanelStatusActive') : T('PanelStatusPaused')}</span>
             </div>
-            <label>${t('panel_max_videos')} <input type="number" id="cfg-max" value="${config.maxVideos}" min="1" max="100"></label>
-            <label>${t('panel_exclude_live')} <input type="checkbox" id="cfg-exclude-live" ${config.excludeLive ? 'checked' : ''}></label>
-            <label>${t('panel_exclude_ad')} <input type="checkbox" id="cfg-exclude-ad" ${config.excludeAd ? 'checked' : ''}></label>
-            <label>${t('panel_exclude_bangumi')} <input type="checkbox" id="cfg-exclude-bangumi" ${config.excludeBangumi ? 'checked' : ''}></label>
-            <label>${t('panel_exclude_paid')} <input type="checkbox" id="cfg-exclude-paid" ${config.excludePaid ? 'checked' : ''}></label>
-            <label>${t('panel_keep_promoted')} <input type="checkbox" id="cfg-keep-promoted" ${config.keepPromoted ? 'checked' : ''}></label>
-            <label>${t('panel_enable_shortcuts')} <input type="checkbox" id="cfg-enable-shortcuts" ${config.enableShortcuts ? 'checked' : ''}></label>
-            <label>${t('panel_debug')} <input type="checkbox" id="cfg-debug" ${config.debug ? 'checked' : ''}></label>
-            <label>${t('panel_language')} <select id="cfg-language">${langSelectHTML}</select></label>
-            <label>${t('panel_keep_upids')} <input type="text" id="cfg-keep-uids" value="${(config.keepSpecialUPIDs || []).join(',')}"></label>
-            <div class="hint">${t('panel_hint')}</div>
-            <div class="btn-row">
-                <button class="secondary" id="cfg-toggle">${isActive ? t('panel_btn_pause') : t('panel_btn_resume')}</button>
-                <button class="secondary" id="cfg-reset">${t('panel_btn_reset')}</button>
-                <button id="cfg-save">${t('panel_btn_save')}</button>
+            <label>${T('PanelMaxVideos')} <input type="number" id="CfgMax" value="${Config.MaxVideos}" min="1" max="100"></label>
+            <label>${T('PanelExcludeLive')} <input type="checkbox" id="CfgExcludeLive" ${Config.ExcludeLive ? 'checked' : ''}></label>
+            <label>${T('PanelExcludeAd')} <input type="checkbox" id="CfgExcludeAd" ${Config.ExcludeAd ? 'checked' : ''}></label>
+            <label>${T('PanelExcludeBangumi')} <input type="checkbox" id="CfgExcludeBangumi" ${Config.ExcludeBangumi ? 'checked' : ''}></label>
+            <label>${T('PanelExcludePaid')} <input type="checkbox" id="CfgExcludePaid" ${Config.ExcludePaid ? 'checked' : ''}></label>
+            <label>${T('PanelKeepPromoted')} <input type="checkbox" id="CfgKeepPromoted" ${Config.KeepPromoted ? 'checked' : ''}></label>
+            <label>${T('PanelEnableShortcuts')} <input type="checkbox" id="CfgEnableShortcuts" ${Config.EnableShortcuts ? 'checked' : ''}></label>
+            <label>${T('PanelDebug')} <input type="checkbox" id="CfgDebug" ${Config.Debug ? 'checked' : ''}></label>
+            <label>${T('PanelLanguage')} <select id="CfgLanguage">${LangSelectHTML}</select></label>
+            <label>${T('PanelKeepUpids')} <input type="text" id="CfgKeepUids" value="${(Config.KeepSpecialUPIDs || []).join(',')}"></label>
+            <div class="Hint">${T('PanelHint')}</div>
+            <div class="BtnRow">
+                <button class="Secondary" id="CfgToggle">${IsActive ? T('PanelBtnPause') : T('PanelBtnResume')}</button>
+                <button class="Secondary" id="CfgReset">${T('PanelBtnReset')}</button>
+                <button id="CfgSave">${T('PanelBtnSave')}</button>
             </div>
         `;
 
-        overlay.appendChild(panel);
-        document.body.appendChild(overlay);
+        Overlay.appendChild(Panel);
+        document.body.appendChild(Overlay);
 
         // —— 事件绑定 ——
 
-        document.getElementById('cfg-save').addEventListener('click', function() {
-            const max = parseInt(document.getElementById('cfg-max').value) || 10;
-            const newLang = document.getElementById('cfg-language').value;
-            const langChanged = newLang !== config.language;
+        document.getElementById('CfgSave').addEventListener('click', function() {
+            const Max = parseInt(document.getElementById('CfgMax').value) || 10;
+            const NewLang = document.getElementById('CfgLanguage').value;
+            const LangChanged = NewLang !== Config.Language;
 
-            const newConfig = {
-                maxVideos: max,
-                excludeLive: document.getElementById('cfg-exclude-live').checked,
-                excludeAd: document.getElementById('cfg-exclude-ad').checked,
-                excludeBangumi: document.getElementById('cfg-exclude-bangumi').checked,
-                excludePaid: document.getElementById('cfg-exclude-paid').checked,
-                keepPromoted: document.getElementById('cfg-keep-promoted').checked,
-                enableShortcuts: document.getElementById('cfg-enable-shortcuts').checked,
-                language: newLang,
-                keepSpecialUPIDs: document.getElementById('cfg-keep-uids').value.split(',').map(s => s.trim()).filter(Boolean).map(Number),
-                debug: document.getElementById('cfg-debug').checked
+            const NewConfig = {
+                MaxVideos: Max,
+                ExcludeLive: document.getElementById('CfgExcludeLive').checked,
+                ExcludeAd: document.getElementById('CfgExcludeAd').checked,
+                ExcludeBangumi: document.getElementById('CfgExcludeBangumi').checked,
+                ExcludePaid: document.getElementById('CfgExcludePaid').checked,
+                KeepPromoted: document.getElementById('CfgKeepPromoted').checked,
+                EnableShortcuts: document.getElementById('CfgEnableShortcuts').checked,
+                Language: NewLang,
+                KeepSpecialUPIDs: document.getElementById('CfgKeepUids').value.split(',').map(S => S.trim()).filter(Boolean).map(Number),
+                Debug: document.getElementById('CfgDebug').checked
             };
-            Object.assign(config, newConfig);
-            saveConfig(config);
+            Object.assign(Config, NewConfig);
+            SaveConfig(Config);
 
             // 语言变更时立即生效
-            if (langChanged) {
-                currentLang = resolveLanguage();
+            if (LangChanged) {
+                CurrentLang = ResolveLanguage();
             }
 
-            destroyPanel();
-            limitVideos();
+            DestroyPanel();
+            LimitVideos();
 
             // 语言变更后重新打开面板（让用户看到新语言）
-            if (langChanged) {
-                setTimeout(() => openConfigPanel(), 100);
+            if (LangChanged) {
+                setTimeout(() => OpenConfigPanel(), 100);
             }
         });
 
-        document.getElementById('cfg-reset').addEventListener('click', function() {
-            Object.assign(config, DEFAULTS);
-            saveConfig(config);
-            currentLang = resolveLanguage();
+        document.getElementById('CfgReset').addEventListener('click', function() {
+            Object.assign(Config, DEFAULTS);
+            SaveConfig(Config);
+            CurrentLang = ResolveLanguage();
             // 刷新面板输入
-            document.getElementById('cfg-max').value = config.maxVideos;
-            document.getElementById('cfg-exclude-live').checked = config.excludeLive;
-            document.getElementById('cfg-exclude-ad').checked = config.excludeAd;
-            document.getElementById('cfg-exclude-bangumi').checked = config.excludeBangumi;
-            document.getElementById('cfg-exclude-paid').checked = config.excludePaid;
-            document.getElementById('cfg-keep-promoted').checked = config.keepPromoted;
-            document.getElementById('cfg-enable-shortcuts').checked = config.enableShortcuts;
-            document.getElementById('cfg-debug').checked = config.debug;
-            document.getElementById('cfg-keep-uids').value = '';
-            limitVideos();
+            document.getElementById('CfgMax').value = Config.MaxVideos;
+            document.getElementById('CfgExcludeLive').checked = Config.ExcludeLive;
+            document.getElementById('CfgExcludeAd').checked = Config.ExcludeAd;
+            document.getElementById('CfgExcludeBangumi').checked = Config.ExcludeBangumi;
+            document.getElementById('CfgExcludePaid').checked = Config.ExcludePaid;
+            document.getElementById('CfgKeepPromoted').checked = Config.KeepPromoted;
+            document.getElementById('CfgEnableShortcuts').checked = Config.EnableShortcuts;
+            document.getElementById('CfgDebug').checked = Config.Debug;
+            document.getElementById('CfgKeepUids').value = '';
+            LimitVideos();
         });
 
-        document.getElementById('cfg-toggle').addEventListener('click', function() {
-            isActive = !isActive;
-            if (isActive) {
-                limitVideos();
+        document.getElementById('CfgToggle').addEventListener('click', function() {
+            IsActive = !IsActive;
+            if (IsActive) {
+                LimitVideos();
             } else {
-                restoreAllVideos();
+                RestoreAllVideos();
             }
-            const badge = document.getElementById('cfg-status-badge');
-            if (badge) {
-                badge.textContent = isActive ? t('panel_status_active') : t('panel_status_paused');
-                badge.className = 'status-badge' + (isActive ? '' : ' off');
+            const Badge = document.getElementById('CfgStatusBadge');
+            if (Badge) {
+                Badge.textContent = IsActive ? T('PanelStatusActive') : T('PanelStatusPaused');
+                Badge.className = 'StatusBadge' + (IsActive ? '' : ' Off');
             }
-            this.textContent = isActive ? t('panel_btn_pause') : t('panel_btn_resume');
+            this.textContent = IsActive ? T('PanelBtnPause') : T('PanelBtnResume');
         });
 
-        overlay.addEventListener('click', function(e) {
-            if (e.target === overlay) {
-                destroyPanel();
+        Overlay.addEventListener('click', function(E) {
+            if (E.target === Overlay) {
+                DestroyPanel();
             }
         });
 
-        function onKeyDown(e) {
-            if (e.key === 'Escape') {
-                destroyPanel();
+        function OnKeyDown(E) {
+            if (E.key === 'Escape') {
+                DestroyPanel();
             }
         }
-        document.addEventListener('keydown', onKeyDown);
+        document.addEventListener('keydown', OnKeyDown);
 
-        function destroyPanel() {
-            document.removeEventListener('keydown', onKeyDown);
-            if (overlay.parentNode) {
-                overlay.parentNode.removeChild(overlay);
+        function DestroyPanel() {
+            document.removeEventListener('keydown', OnKeyDown);
+            if (Overlay.parentNode) {
+                Overlay.parentNode.removeChild(Overlay);
             }
-            panelDestroyFn = null;
+            PanelDestroyFn = null;
         }
 
-        panelDestroyFn = destroyPanel;
+        PanelDestroyFn = DestroyPanel;
     }
 
-    function closeConfigPanel() {
-        if (panelDestroyFn) {
-            panelDestroyFn();
-            panelDestroyFn = null;
+    function CloseConfigPanel() {
+        if (PanelDestroyFn) {
+            PanelDestroyFn();
+            PanelDestroyFn = null;
         }
     }
 
     // ======================== 快捷键 ========================
-    function initShortcuts() {
-        if (!config.enableShortcuts) return;
-        document.addEventListener('keydown', function(e) {
-            if (e.ctrlKey && e.shiftKey && e.key >= '0' && e.key <= '9') {
-                e.preventDefault();
-                const num = parseInt(e.key);
-                if (num === 0) {
-                    if (isActive) {
-                        isActive = false;
-                        restoreAllVideos();
+    function InitShortcuts() {
+        if (!Config.EnableShortcuts) return;
+        document.addEventListener('keydown', function(E) {
+            if (E.ctrlKey && E.shiftKey && E.key >= '0' && E.key <= '9') {
+                E.preventDefault();
+                const Num = parseInt(E.key);
+                if (Num === 0) {
+                    if (IsActive) {
+                        IsActive = false;
+                        RestoreAllVideos();
                     }
-                    log(t('log_shortcut', t('log_status_off')));
+                    Log(T('LogShortcut', T('LogStatusOff')));
                 } else {
-                    config.maxVideos = num;
-                    saveConfig({ maxVideos: num });
-                    if (!isActive) {
-                        isActive = true;
+                    Config.MaxVideos = Num;
+                    SaveConfig({ MaxVideos: Num });
+                    if (!IsActive) {
+                        IsActive = true;
                     }
-                    limitVideos();
-                    log(t('log_shortcut', num));
+                    LimitVideos();
+                    Log(T('LogShortcut', Num));
                 }
             }
         });
     }
 
     // ======================== 观察者 ========================
-    function initObserver() {
-        if (observer) {
-            observer.disconnect();
-            observer = null;
+    function InitObserver() {
+        if (Observer) {
+            Observer.disconnect();
+            Observer = null;
         }
 
-        const container = detectContainer();
-        if (!container) return;
+        const Container = DetectContainer();
+        if (!Container) return;
 
-        observer = new MutationObserver(function(mutations) {
-            let shouldProcess = false;
-            for (const mutation of mutations) {
-                if (mutation.type === 'childList' && (mutation.addedNodes.length > 0 || mutation.removedNodes.length > 0)) {
-                    for (const node of mutation.addedNodes) {
-                        if (node.nodeType === 1) {
-                            const sel = detectSelector();
-                            if (sel && (node.matches(sel) || node.querySelector(sel))) {
-                                shouldProcess = true;
+        Observer = new MutationObserver(function(Mutations) {
+            let ShouldProcess = false;
+            for (const Mutation of Mutations) {
+                if (Mutation.type === 'childList' && (Mutation.addedNodes.length > 0 || Mutation.removedNodes.length > 0)) {
+                    for (const Node of Mutation.addedNodes) {
+                        if (Node.nodeType === 1) {
+                            const Sel = DetectSelector();
+                            if (Sel && (Node.matches(Sel) || Node.querySelector(Sel))) {
+                                ShouldProcess = true;
                                 break;
                             }
                         }
                     }
-                    if (!shouldProcess) {
-                        for (const node of mutation.removedNodes) {
-                            if (node.nodeType === 1) {
-                                const sel = detectSelector();
-                                if (sel && (node.matches(sel) || node.querySelector(sel))) {
-                                    shouldProcess = true;
+                    if (!ShouldProcess) {
+                        for (const Node of Mutation.removedNodes) {
+                            if (Node.nodeType === 1) {
+                                const Sel = DetectSelector();
+                                if (Sel && (Node.matches(Sel) || Node.querySelector(Sel))) {
+                                    ShouldProcess = true;
                                     break;
                                 }
                             }
                         }
                     }
                 }
-                if (shouldProcess) break;
+                if (ShouldProcess) break;
             }
 
-            if (shouldProcess) {
-                const now = Date.now();
-                if (now - lastRun < THROTTLE_INTERVAL) {
-                    clearTimeout(debounceTimer);
-                    debounceTimer = setTimeout(() => {
-                        lastRun = Date.now();
-                        limitVideos();
+            if (ShouldProcess) {
+                const Now = Date.now();
+                if (Now - LastRun < THROTTLE_INTERVAL) {
+                    clearTimeout(DebounceTimer);
+                    DebounceTimer = setTimeout(() => {
+                        LastRun = Date.now();
+                        LimitVideos();
                     }, 300);
                 } else {
-                    lastRun = now;
-                    limitVideos();
+                    LastRun = Now;
+                    LimitVideos();
                 }
             }
         });
 
-        observer.observe(container, {
+        Observer.observe(Container, {
             childList: true,
             subtree: true,
             attributes: false
         });
 
-        log(t('log_observer_started'), container);
+        Log(T('LogObserverStarted'), Container);
     }
 
     // ======================== 路由变化监听 ========================
-    function watchUrlChange() {
-        let lastUrl = location.href;
+    function WatchUrlChange() {
+        let LastUrl = location.href;
         setInterval(() => {
-            if (location.href !== lastUrl) {
-                lastUrl = location.href;
-                log(t('log_url_changed'), lastUrl);
-                effectiveSelector = null;
-                videoListContainer = null;
+            if (location.href !== LastUrl) {
+                LastUrl = location.href;
+                Log(T('LogUrlChanged'), LastUrl);
+                EffectiveSelector = null;
+                VideoListContainer = null;
                 setTimeout(() => {
-                    detectSelector();
-                    detectContainer();
-                    limitVideos();
+                    DetectSelector();
+                    DetectContainer();
+                    LimitVideos();
                 }, 500);
             }
         }, 1000);
     }
 
     // ======================== 菜单命令（唯一入口，在语言解析后注册） ========================
-    function registerMenu() {
-        GM_registerMenuCommand(t('menu_settings'), function() {
-            openConfigPanel();
+    function RegisterMenu() {
+        GM_registerMenuCommand(T('MenuSettings'), function() {
+            OpenConfigPanel();
         });
-        GM_registerMenuCommand(t('menu_refresh'), function() {
-            effectiveSelector = null;
-            videoListContainer = null;
-            limitVideos();
+        GM_registerMenuCommand(T('MenuRefresh'), function() {
+            EffectiveSelector = null;
+            VideoListContainer = null;
+            LimitVideos();
         });
-        GM_registerMenuCommand(t('menu_toggle'), function() {
-            isActive = !isActive;
-            if (isActive) {
-                limitVideos();
+        GM_registerMenuCommand(T('MenuToggle'), function() {
+            IsActive = !IsActive;
+            if (IsActive) {
+                LimitVideos();
             } else {
-                restoreAllVideos();
+                RestoreAllVideos();
             }
-            log(t('log_status'), isActive ? t('log_status_on') : t('log_status_off'));
+            Log(T('LogStatus'), IsActive ? T('LogStatusOn') : T('LogStatusOff'));
         });
-        GM_registerMenuCommand(t('menu_quick_set'), function() {
-            const num = prompt(t('prompt_quick_set'), config.maxVideos);
-            if (num !== null) {
-                const n = parseInt(num);
-                if (n >= 1 && n <= 100) {
-                    config.maxVideos = n;
-                    saveConfig({ maxVideos: n });
-                    if (!isActive) {
-                        isActive = true;
+        GM_registerMenuCommand(T('MenuQuickSet'), function() {
+            const Num = prompt(T('PromptQuickSet'), Config.MaxVideos);
+            if (Num !== null) {
+                const N = parseInt(Num);
+                if (N >= 1 && N <= 100) {
+                    Config.MaxVideos = N;
+                    SaveConfig({ MaxVideos: N });
+                    if (!IsActive) {
+                        IsActive = true;
                     }
-                    limitVideos();
-                    log(t('log_quick_set'), n);
+                    LimitVideos();
+                    Log(T('LogQuickSet'), N);
                 }
             }
         });
     }
 
     // ======================== 初始化 ========================
-    function init() {
+    function Init() {
         try {
             // 加载配置
-            config = getConfig();
+            Config = GetConfig();
 
-            // 解析语言（必须在任何 t() 调用之前）
-            currentLang = resolveLanguage();
+            // 解析语言（必须在任何 T() 调用之前）
+            CurrentLang = ResolveLanguage();
 
-            log(t('log_config_loaded'), config);
+            Log(T('LogConfigLoaded'), Config);
 
             // 注入样式（仅过滤类，不注入任何UI节点）
-            injectStyles();
+            InjectStyles();
 
             // 注册菜单（TM菜单是唯一入口，不在页面注入UI）
-            registerMenu();
+            RegisterMenu();
 
             // 启动观察
-            initObserver();
+            InitObserver();
 
             // 路由监听
-            watchUrlChange();
+            WatchUrlChange();
 
             // 快捷键
-            initShortcuts();
+            InitShortcuts();
 
             // 初次执行
             setTimeout(() => {
-                detectSelector();
-                detectContainer();
-                limitVideos();
+                DetectSelector();
+                DetectContainer();
+                LimitVideos();
             }, 500);
 
             // 定时后备检查
             setInterval(() => {
-                if (isActive) {
-                    const selector = detectSelector();
-                    if (selector) {
-                        const cards = document.querySelectorAll(selector);
-                        let visibleCount = 0;
-                        for (const card of cards) {
-                            if (!(card.style.display === 'none' || card.classList.contains('bili-limited-hide'))) {
-                                visibleCount++;
+                if (IsActive) {
+                    const Selector = DetectSelector();
+                    if (Selector) {
+                        const Cards = document.querySelectorAll(Selector);
+                        let VisibleCount = 0;
+                        for (const Card of Cards) {
+                            if (!(Card.style.display === 'none' || Card.classList.contains('BiliLimitedHide'))) {
+                                VisibleCount++;
                             }
                         }
-                        if (visibleCount > config.maxVideos) {
-                            log(t('log_timer_retry'));
-                            limitVideos();
+                        if (VisibleCount > Config.MaxVideos) {
+                            Log(T('LogTimerRetry'));
+                            LimitVideos();
                         }
                     }
                 }
             }, 5000);
 
-            log(t('log_init_done'), config);
+            Log(T('LogInitDone'), Config);
 
-        } catch (e) {
-            errorLog(t('log_init_error'), e);
+        } catch (E) {
+            ErrorLog(T('LogInitError'), E);
         }
     }
 
     // 页面加载完成
     if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', init);
+        document.addEventListener('DOMContentLoaded', Init);
     } else {
-        init();
+        Init();
     }
 
 })();
