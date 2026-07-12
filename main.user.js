@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         更重的网页端B站精简
 // @namespace    http://tampermonkey.net/
-// @version      2.2.0
+// @version      2.2.1
 // @description  你是否厌倦了B站网页端极多视频？想要更简要的界面？这个插件将帮助你只显示指定数量的视频，支持多种页面、黑/白名单、快捷键，配置持久化。非侵入式设计，不在B站页面注入任何UI元素。支持简中/繁中/English。
 // @author       暮雨终将落下
 // @match        https://www.bilibili.com/
