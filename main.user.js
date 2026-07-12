@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name         更重的网页端B站精简
 // @namespace    http://tampermonkey.net/
-// @version      2.1.0
-// @description  你是否厌倦了B站网页端极多视频？想要更简要的界面？这个插件将帮助你只显示指定数量的视频，支持多种页面、黑/白名单、快捷键，配置持久化。非侵入式设计，不在B站页面注入任何UI元素。
+// @version      2.2.0
+// @description  你是否厌倦了B站网页端极多视频？想要更简要的界面？这个插件将帮助你只显示指定数量的视频，支持多种页面、黑/白名单、快捷键，配置持久化。非侵入式设计，不在B站页面注入任何UI元素。支持简中/繁中/English。
 // @author       暮雨终将落下
 // @match        https://www.bilibili.com/
 // @match        https://www.bilibili.com/?*
@@ -37,6 +37,204 @@
 (function() {
     'use strict';
 
+    // ======================== 国际化 (i18n) ========================
+    const I18N = {
+        zh_CN: {
+            // Log
+            log_prefix: '[B站精简]',
+            log_selector_data: '通过data属性探测到选择器:',
+            log_selector_found: '探测到选择器:',
+            log_selector_fallback: '通过链接回退探测到选择器:',
+            log_no_cards: '未找到视频卡片，跳过',
+            log_still_no_cards: '仍未找到视频卡片',
+            log_processed: '已处理: 总视频 {0}, 显示 {1}, 隐藏 {2}',
+            log_error_limit: 'limitVideos 出错:',
+            log_container_found: '探测到容器:',
+            log_config_loaded: '配置加载完成:',
+            log_shortcut: '快捷键: {0}',
+            log_status: '精简状态: {0}',
+            log_status_on: '已开启',
+            log_status_off: '已关闭',
+            log_quick_set: '已设置最大数量:',
+            log_timer_retry: '定时器检测到可见视频过多，重新执行限制',
+            log_init_done: '脚本初始化完成，当前配置:',
+            log_init_error: '初始化失败:',
+            log_observer_started: 'MutationObserver 已启动，监听容器:',
+            log_url_changed: 'URL变化:',
+
+            // Menu
+            menu_settings: 'B站精简设置',
+            menu_refresh: '手动刷新精简',
+            menu_toggle: '切换精简状态',
+            menu_quick_set: '快速设数量',
+
+            // Panel
+            panel_title: 'B站精简设置',
+            panel_status_label: '当前状态',
+            panel_status_active: '精简中',
+            panel_status_paused: '已暂停',
+            panel_max_videos: '最大显示数量',
+            panel_exclude_live: '排除直播',
+            panel_exclude_ad: '排除广告',
+            panel_exclude_bangumi: '排除番剧',
+            panel_exclude_paid: '排除付费课程',
+            panel_keep_promoted: '保留推广位',
+            panel_enable_shortcuts: '启用快捷键',
+            panel_keep_upids: '保留UP主ID（逗号分隔）',
+            panel_debug: '调试模式',
+            panel_language: '界面语言 / Language',
+            panel_language_auto: '自动 (Auto)',
+            panel_hint: '快捷键: Ctrl+Shift+数字 快速调整数量（如 Ctrl+Shift+5 设为5，0 关闭精简）',
+            panel_btn_pause: '暂停精简',
+            panel_btn_resume: '启用精简',
+            panel_btn_reset: '恢复默认',
+            panel_btn_save: '保存并应用',
+            panel_btn_close: '关闭',
+
+            // Prompt
+            prompt_quick_set: '输入最大显示视频数量（1-100）：',
+        },
+        zh_TW: {
+            // Log
+            log_prefix: '[B站精簡]',
+            log_selector_data: '透過data屬性探測到選擇器:',
+            log_selector_found: '探測到選擇器:',
+            log_selector_fallback: '透過連結回退探測到選擇器:',
+            log_no_cards: '未找到影片卡片，跳過',
+            log_still_no_cards: '仍未找到影片卡片',
+            log_processed: '已處理: 總影片 {0}, 顯示 {1}, 隱藏 {2}',
+            log_error_limit: 'limitVideos 出錯:',
+            log_container_found: '探測到容器:',
+            log_config_loaded: '設定載入完成:',
+            log_shortcut: '快速鍵: {0}',
+            log_status: '精簡狀態: {0}',
+            log_status_on: '已開啟',
+            log_status_off: '已關閉',
+            log_quick_set: '已設定最大數量:',
+            log_timer_retry: '定時器偵測到可見影片過多，重新執行限制',
+            log_init_done: '指令碼初始化完成（非侵入式），目前設定:',
+            log_init_error: '初始化失敗:',
+            log_observer_started: 'MutationObserver 已啟動，監聽容器:',
+            log_url_changed: 'URL變化:',
+
+            // Menu
+            menu_settings: 'B站精簡設定',
+            menu_refresh: '手動重新整理精簡',
+            menu_toggle: '切換精簡狀態',
+            menu_quick_set: '快速設數量',
+
+            // Panel
+            panel_title: 'B站精簡設定',
+            panel_status_label: '目前狀態',
+            panel_status_active: '精簡中',
+            panel_status_paused: '已暫停',
+            panel_max_videos: '最大顯示數量',
+            panel_exclude_live: '排除直播',
+            panel_exclude_ad: '排除廣告',
+            panel_exclude_bangumi: '排除番劇',
+            panel_exclude_paid: '排除付費課程',
+            panel_keep_promoted: '保留推廣位',
+            panel_enable_shortcuts: '啟用快速鍵',
+            panel_keep_upids: '保留UP主ID（逗號分隔）',
+            panel_debug: '除錯模式',
+            panel_language: '介面語言 / Language',
+            panel_language_auto: '自動 (Auto)',
+            panel_hint: '快速鍵: Ctrl+Shift+數字 快速調整數量（如 Ctrl+Shift+5 設為5，0 關閉精簡）',
+            panel_btn_pause: '暫停精簡',
+            panel_btn_resume: '啟用精簡',
+            panel_btn_reset: '回復預設',
+            panel_btn_save: '儲存並套用',
+            panel_btn_close: '關閉',
+
+            // Prompt
+            prompt_quick_set: '輸入最大顯示影片數量（1-100）：',
+        },
+        en_US: {
+            // Log
+            log_prefix: '[BiliCompact]',
+            log_selector_data: 'Selector detected via data attribute:',
+            log_selector_found: 'Selector detected:',
+            log_selector_fallback: 'Selector detected via link fallback:',
+            log_no_cards: 'No video cards found, skipping',
+            log_still_no_cards: 'Still no video cards found',
+            log_processed: 'Processed: total {0}, shown {1}, hidden {2}',
+            log_error_limit: 'limitVideos error:',
+            log_container_found: 'Container detected:',
+            log_config_loaded: 'Config loaded:',
+            log_shortcut: 'Shortcut: {0}',
+            log_status: 'Compact status: {0}',
+            log_status_on: 'Enabled',
+            log_status_off: 'Disabled',
+            log_quick_set: 'Max videos set to:',
+            log_timer_retry: 'Timer detected too many visible videos, re-running limit',
+            log_init_done: 'BiliCompact initialized (non-invasive), config:',
+            log_init_error: 'Initialization failed:',
+            log_observer_started: 'MutationObserver started, watching container:',
+            log_url_changed: 'URL changed:',
+
+            // Menu
+            menu_settings: 'BiliCompact Settings',
+            menu_refresh: 'Refresh Compact',
+            menu_toggle: 'Toggle Compact',
+            menu_quick_set: 'Quick Set Count',
+
+            // Panel
+            panel_title: 'BiliCompact Settings',
+            panel_status_label: 'Status',
+            panel_status_active: 'Active',
+            panel_status_paused: 'Paused',
+            panel_max_videos: 'Max videos',
+            panel_exclude_live: 'Exclude live streams',
+            panel_exclude_ad: 'Exclude ads',
+            panel_exclude_bangumi: 'Exclude bangumi',
+            panel_exclude_paid: 'Exclude paid courses',
+            panel_keep_promoted: 'Keep promoted items',
+            panel_enable_shortcuts: 'Enable shortcuts',
+            panel_keep_upids: 'Whitelist UP IDs (comma-separated)',
+            panel_debug: 'Debug mode',
+            panel_language: 'Language / 語言',
+            panel_language_auto: 'Auto',
+            panel_hint: 'Shortcuts: Ctrl+Shift+Number to set max (e.g. Ctrl+Shift+5 = 5, 0 = disable)',
+            panel_btn_pause: 'Pause',
+            panel_btn_resume: 'Resume',
+            panel_btn_reset: 'Reset Defaults',
+            panel_btn_save: 'Save & Apply',
+            panel_btn_close: 'Close',
+
+            // Prompt
+            prompt_quick_set: 'Enter max videos to show (1-100):',
+        }
+    };
+
+    // 当前生效的语言
+    let currentLang = 'zh_CN';
+
+    function resolveLanguage() {
+        if (config.language && config.language !== 'auto') {
+            return config.language;
+        }
+        const nav = (navigator.language || '').toLowerCase();
+        if (/^zh-(tw|hk|mo)$/i.test(nav) || /^zh-(hant)$/i.test(nav)) return 'zh_TW';
+        if (/^zh/i.test(nav)) return 'zh_CN';
+        if (/^en/i.test(nav)) return 'en_US';
+        return 'zh_CN'; // fallback
+    }
+
+    function t(key, ...args) {
+        const map = I18N[currentLang] || I18N['zh_CN'];
+        let str = map[key];
+        if (str === undefined) {
+            // Fallback to zh_CN if key missing in current locale
+            str = I18N['zh_CN'][key];
+        }
+        if (str === undefined) return key; // ultimate fallback: show the key itself
+        // Replace placeholders {0}, {1}, {2}...
+        for (let i = 0; i < args.length; i++) {
+            str = str.replace('{' + i + '}', args[i]);
+        }
+        return str;
+    }
+
     // ======================== 配置（默认值，会从GM存储读取） ========================
     const DEFAULTS = {
         maxVideos: 10,                 // 最大显示数量
@@ -47,6 +245,7 @@
         keepSpecialUPIDs: [],         // 保留的UP主ID列表（数字）
         keepPromoted: false,          // 保留推广位（不计入数量）
         enableShortcuts: true,        // 启用快捷键
+        language: 'auto',             // 界面语言: auto | zh_CN | zh_TW | en_US
         debug: false                  // 调试模式
     };
 
@@ -62,11 +261,11 @@
 
     // ======================== 工具函数 ========================
     function log(...args) {
-        if (config.debug) console.log('[B站精简]', ...args);
+        if (config.debug) console.log(t('log_prefix'), ...args);
     }
 
     function errorLog(...args) {
-        console.error('[B站精简]', ...args);
+        console.error(t('log_prefix'), ...args);
     }
 
     // 安全获取存储
@@ -120,7 +319,7 @@
                     if (card) {
                         effectiveSelector = (card.tagName === el.tagName) ? sel :
                             Array.from(card.classList).map(c => '.' + c).join('');
-                        log('通过data属性探测到选择器:', effectiveSelector);
+                        log(t('log_selector_data'), effectiveSelector);
                         return effectiveSelector;
                     }
                 }
@@ -132,7 +331,7 @@
             const els = document.querySelectorAll(sel);
             if (els.length > 0) {
                 effectiveSelector = sel;
-                log('探测到选择器:', effectiveSelector);
+                log(t('log_selector_found'), effectiveSelector);
                 return effectiveSelector;
             }
         }
@@ -146,7 +345,7 @@
                 const cls = parent.className || '';
                 if (cls.includes('card') || cls.includes('item') || cls.includes('feed') || cls.includes('video')) {
                     effectiveSelector = '.' + cls.split(' ').join('.');
-                    log('通过链接回退探测到选择器:', effectiveSelector);
+                    log(t('log_selector_fallback'), effectiveSelector);
                     return effectiveSelector;
                 }
                 parent = parent.parentElement;
@@ -171,7 +370,7 @@
             const el = document.querySelector(sel);
             if (el) {
                 videoListContainer = el;
-                log('探测到容器:', sel);
+                log(t('log_container_found'), sel);
                 return el;
             }
         }
@@ -189,7 +388,7 @@
         try {
             const selector = detectSelector();
             if (!selector) {
-                log('未找到视频卡片，跳过');
+                log(t('log_no_cards'));
                 return;
             }
 
@@ -212,7 +411,7 @@
                 }
                 cards = Array.from(parentCards);
                 if (cards.length === 0) {
-                    log('仍未找到视频卡片');
+                    log(t('log_still_no_cards'));
                     return;
                 }
             }
@@ -334,10 +533,12 @@
                 card.style.flex = '';
             });
 
-            log(`已处理: 总视频 ${videoCards.length + promotedCards.length + topCards.length}, 显示 ${toShow.length + promotedCards.length + topCards.length}, 隐藏 ${toHide.length}`);
+            const total = videoCards.length + promotedCards.length + topCards.length;
+            const shown = toShow.length + promotedCards.length + topCards.length;
+            log(t('log_processed', total, shown, toHide.length));
 
         } catch (e) {
-            errorLog('limitVideos 出错:', e);
+            errorLog(t('log_error_limit'), e);
         }
     }
 
@@ -378,9 +579,7 @@
     }
 
     // ======================== 配置面板（非侵入式：按需创建/销毁） ========================
-    // 配置面板的 CSS（与页面样式完全隔离，使用独立沙盒）
     function injectPanelStyles() {
-        // 面板样式仅在使用时注入一次
         if (document.getElementById('bili-compact-panel-styles')) return;
         const styleEl = document.createElement('style');
         styleEl.id = 'bili-compact-panel-styles';
@@ -397,6 +596,7 @@
                 align-items: center;
                 justify-content: center;
                 font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+                font-size: 14px;
             }
             .bili-compact-panel {
                 background: #1e1e1e;
@@ -404,13 +604,16 @@
                 padding: 24px 30px;
                 border-radius: 16px;
                 box-shadow: 0 8px 40px rgba(0,0,0,0.6);
-                min-width: 320px;
+                min-width: 340px;
+                max-width: 420px;
                 border: 1px solid #333;
                 backdrop-filter: blur(8px);
                 display: flex;
                 flex-direction: column;
-                gap: 14px;
+                gap: 12px;
                 position: relative;
+                max-height: 85vh;
+                overflow-y: auto;
             }
             .bili-compact-panel h3 {
                 margin: 0 0 4px 0;
@@ -424,6 +627,7 @@
                 align-items: center;
                 font-size: 14px;
                 color: #ccc;
+                gap: 8px;
             }
             .bili-compact-panel input[type="number"],
             .bili-compact-panel input[type="text"] {
@@ -437,7 +641,17 @@
                 font-family: inherit;
             }
             .bili-compact-panel input[type="text"] {
-                width: 160px;
+                width: 140px;
+            }
+            .bili-compact-panel select {
+                background: #2a2a2a;
+                border: 1px solid #444;
+                color: #fff;
+                padding: 4px 8px;
+                border-radius: 6px;
+                font-size: 14px;
+                font-family: inherit;
+                cursor: pointer;
             }
             .bili-compact-panel input[type="checkbox"] {
                 accent-color: #fb7299;
@@ -450,6 +664,7 @@
                 gap: 10px;
                 justify-content: flex-end;
                 margin-top: 6px;
+                flex-wrap: wrap;
             }
             .bili-compact-panel button {
                 background: #fb7299;
@@ -474,7 +689,8 @@
             .bili-compact-panel .hint {
                 font-size: 12px;
                 color: #888;
-                margin-top: -6px;
+                margin-top: -4px;
+                line-height: 1.4;
             }
             .bili-compact-panel .status-row {
                 display: flex;
@@ -498,45 +714,54 @@
         document.head.appendChild(styleEl);
     }
 
-    let panelDestroyFn = null; // 当前面板的销毁函数
+    let panelDestroyFn = null;
 
     function openConfigPanel() {
-        // 如果已有面板打开，先关闭
         if (panelDestroyFn) {
             panelDestroyFn();
             panelDestroyFn = null;
         }
 
-        // 确保样式已注入
         injectPanelStyles();
 
-        // 创建遮罩层
         const overlay = document.createElement('div');
         overlay.className = 'bili-compact-overlay';
 
-        // 创建面板
         const panel = document.createElement('div');
         panel.className = 'bili-compact-panel';
+
+        // 语言选项
+        const langOptions = [
+            { value: 'auto',  label: t('panel_language_auto') },
+            { value: 'zh_CN', label: '简体中文' },
+            { value: 'zh_TW', label: '繁體中文' },
+            { value: 'en_US', label: 'English' },
+        ];
+        const langSelectHTML = langOptions.map(opt =>
+            `<option value="${opt.value}" ${config.language === opt.value ? 'selected' : ''}>${opt.label}</option>`
+        ).join('');
+
         panel.innerHTML = `
-            <h3>B站精简设置</h3>
+            <h3>${t('panel_title')}</h3>
             <div class="status-row">
-                <span>当前状态</span>
-                <span class="status-badge ${isActive ? '' : 'off'}" id="cfg-status-badge">${isActive ? '精简中' : '已暂停'}</span>
+                <span>${t('panel_status_label')}</span>
+                <span class="status-badge ${isActive ? '' : 'off'}" id="cfg-status-badge">${isActive ? t('panel_status_active') : t('panel_status_paused')}</span>
             </div>
-            <label>最大显示数量 <input type="number" id="cfg-max" value="${config.maxVideos}" min="1" max="100"></label>
-            <label>排除直播 <input type="checkbox" id="cfg-exclude-live" ${config.excludeLive ? 'checked' : ''}></label>
-            <label>排除广告 <input type="checkbox" id="cfg-exclude-ad" ${config.excludeAd ? 'checked' : ''}></label>
-            <label>排除番剧 <input type="checkbox" id="cfg-exclude-bangumi" ${config.excludeBangumi ? 'checked' : ''}></label>
-            <label>排除付费课程 <input type="checkbox" id="cfg-exclude-paid" ${config.excludePaid ? 'checked' : ''}></label>
-            <label>保留推广位 <input type="checkbox" id="cfg-keep-promoted" ${config.keepPromoted ? 'checked' : ''}></label>
-            <label>启用快捷键 <input type="checkbox" id="cfg-enable-shortcuts" ${config.enableShortcuts ? 'checked' : ''}></label>
-            <label>保留UP主ID（逗号分隔） <input type="text" id="cfg-keep-uids" value="${(config.keepSpecialUPIDs || []).join(',')}"></label>
-            <label>调试模式 <input type="checkbox" id="cfg-debug" ${config.debug ? 'checked' : ''}></label>
-            <div class="hint">快捷键: Ctrl+Shift+数字 快速调整数量（如 Ctrl+Shift+5 设为5，0 关闭精简）</div>
+            <label>${t('panel_max_videos')} <input type="number" id="cfg-max" value="${config.maxVideos}" min="1" max="100"></label>
+            <label>${t('panel_exclude_live')} <input type="checkbox" id="cfg-exclude-live" ${config.excludeLive ? 'checked' : ''}></label>
+            <label>${t('panel_exclude_ad')} <input type="checkbox" id="cfg-exclude-ad" ${config.excludeAd ? 'checked' : ''}></label>
+            <label>${t('panel_exclude_bangumi')} <input type="checkbox" id="cfg-exclude-bangumi" ${config.excludeBangumi ? 'checked' : ''}></label>
+            <label>${t('panel_exclude_paid')} <input type="checkbox" id="cfg-exclude-paid" ${config.excludePaid ? 'checked' : ''}></label>
+            <label>${t('panel_keep_promoted')} <input type="checkbox" id="cfg-keep-promoted" ${config.keepPromoted ? 'checked' : ''}></label>
+            <label>${t('panel_enable_shortcuts')} <input type="checkbox" id="cfg-enable-shortcuts" ${config.enableShortcuts ? 'checked' : ''}></label>
+            <label>${t('panel_debug')} <input type="checkbox" id="cfg-debug" ${config.debug ? 'checked' : ''}></label>
+            <label>${t('panel_language')} <select id="cfg-language">${langSelectHTML}</select></label>
+            <label>${t('panel_keep_upids')} <input type="text" id="cfg-keep-uids" value="${(config.keepSpecialUPIDs || []).join(',')}"></label>
+            <div class="hint">${t('panel_hint')}</div>
             <div class="btn-row">
-                <button class="secondary" id="cfg-toggle">${isActive ? '暂停精简' : '启用精简'}</button>
-                <button class="secondary" id="cfg-reset">恢复默认</button>
-                <button id="cfg-save">保存并应用</button>
+                <button class="secondary" id="cfg-toggle">${isActive ? t('panel_btn_pause') : t('panel_btn_resume')}</button>
+                <button class="secondary" id="cfg-reset">${t('panel_btn_reset')}</button>
+                <button id="cfg-save">${t('panel_btn_save')}</button>
             </div>
         `;
 
@@ -545,9 +770,11 @@
 
         // —— 事件绑定 ——
 
-        // 保存
         document.getElementById('cfg-save').addEventListener('click', function() {
             const max = parseInt(document.getElementById('cfg-max').value) || 10;
+            const newLang = document.getElementById('cfg-language').value;
+            const langChanged = newLang !== config.language;
+
             const newConfig = {
                 maxVideos: max,
                 excludeLive: document.getElementById('cfg-exclude-live').checked,
@@ -556,19 +783,31 @@
                 excludePaid: document.getElementById('cfg-exclude-paid').checked,
                 keepPromoted: document.getElementById('cfg-keep-promoted').checked,
                 enableShortcuts: document.getElementById('cfg-enable-shortcuts').checked,
+                language: newLang,
                 keepSpecialUPIDs: document.getElementById('cfg-keep-uids').value.split(',').map(s => s.trim()).filter(Boolean).map(Number),
                 debug: document.getElementById('cfg-debug').checked
             };
             Object.assign(config, newConfig);
             saveConfig(config);
+
+            // 语言变更时立即生效
+            if (langChanged) {
+                currentLang = resolveLanguage();
+            }
+
             destroyPanel();
             limitVideos();
+
+            // 语言变更后重新打开面板（让用户看到新语言）
+            if (langChanged) {
+                setTimeout(() => openConfigPanel(), 100);
+            }
         });
 
-        // 重置
         document.getElementById('cfg-reset').addEventListener('click', function() {
             Object.assign(config, DEFAULTS);
             saveConfig(config);
+            currentLang = resolveLanguage();
             // 刷新面板输入
             document.getElementById('cfg-max').value = config.maxVideos;
             document.getElementById('cfg-exclude-live').checked = config.excludeLive;
@@ -582,7 +821,6 @@
             limitVideos();
         });
 
-        // 切换精简状态
         document.getElementById('cfg-toggle').addEventListener('click', function() {
             isActive = !isActive;
             if (isActive) {
@@ -592,20 +830,18 @@
             }
             const badge = document.getElementById('cfg-status-badge');
             if (badge) {
-                badge.textContent = isActive ? '精简中' : '已暂停';
+                badge.textContent = isActive ? t('panel_status_active') : t('panel_status_paused');
                 badge.className = 'status-badge' + (isActive ? '' : ' off');
             }
-            this.textContent = isActive ? '暂停精简' : '启用精简';
+            this.textContent = isActive ? t('panel_btn_pause') : t('panel_btn_resume');
         });
 
-        // 点击遮罩关闭
         overlay.addEventListener('click', function(e) {
             if (e.target === overlay) {
                 destroyPanel();
             }
         });
 
-        // ESC 关闭
         function onKeyDown(e) {
             if (e.key === 'Escape') {
                 destroyPanel();
@@ -613,7 +849,6 @@
         }
         document.addEventListener('keydown', onKeyDown);
 
-        // —— 销毁函数 ——
         function destroyPanel() {
             document.removeEventListener('keydown', onKeyDown);
             if (overlay.parentNode) {
@@ -640,22 +875,20 @@
                 e.preventDefault();
                 const num = parseInt(e.key);
                 if (num === 0) {
-                    // 0 表示关闭精简
                     if (isActive) {
                         isActive = false;
                         restoreAllVideos();
                     }
+                    log(t('log_shortcut', t('log_status_off')));
                 } else {
-                    // 1-9 设置数量
                     config.maxVideos = num;
                     saveConfig({ maxVideos: num });
                     if (!isActive) {
                         isActive = true;
                     }
                     limitVideos();
+                    log(t('log_shortcut', num));
                 }
-                // 非侵入式反馈：使用 GM_notification 或静默执行（用户立即看到结果）
-                log(`快捷键: ${num === 0 ? '关闭精简' : '设为 ' + num + ' 个视频'}`);
             }
         });
     }
@@ -719,7 +952,7 @@
             attributes: false
         });
 
-        log('MutationObserver 已启动，监听容器:', container);
+        log(t('log_observer_started'), container);
     }
 
     // ======================== 路由变化监听 ========================
@@ -728,7 +961,7 @@
         setInterval(() => {
             if (location.href !== lastUrl) {
                 lastUrl = location.href;
-                log('URL变化:', lastUrl);
+                log(t('log_url_changed'), lastUrl);
                 effectiveSelector = null;
                 videoListContainer = null;
                 setTimeout(() => {
@@ -740,27 +973,27 @@
         }, 1000);
     }
 
-    // ======================== 菜单命令（唯一入口） ========================
+    // ======================== 菜单命令（唯一入口，在语言解析后注册） ========================
     function registerMenu() {
-        GM_registerMenuCommand('B站精简设置', function() {
+        GM_registerMenuCommand(t('menu_settings'), function() {
             openConfigPanel();
         });
-        GM_registerMenuCommand('手动刷新精简', function() {
+        GM_registerMenuCommand(t('menu_refresh'), function() {
             effectiveSelector = null;
             videoListContainer = null;
             limitVideos();
         });
-        GM_registerMenuCommand('切换精简状态', function() {
+        GM_registerMenuCommand(t('menu_toggle'), function() {
             isActive = !isActive;
             if (isActive) {
                 limitVideos();
             } else {
                 restoreAllVideos();
             }
-            log('精简状态:', isActive ? '已开启' : '已关闭');
+            log(t('log_status'), isActive ? t('log_status_on') : t('log_status_off'));
         });
-        GM_registerMenuCommand('快速设数量', function() {
-            const num = prompt('输入最大显示视频数量（1-100）：', config.maxVideos);
+        GM_registerMenuCommand(t('menu_quick_set'), function() {
+            const num = prompt(t('prompt_quick_set'), config.maxVideos);
             if (num !== null) {
                 const n = parseInt(num);
                 if (n >= 1 && n <= 100) {
@@ -770,7 +1003,7 @@
                         isActive = true;
                     }
                     limitVideos();
-                    log('已设置最大数量:', n);
+                    log(t('log_quick_set'), n);
                 }
             }
         });
@@ -781,7 +1014,11 @@
         try {
             // 加载配置
             config = getConfig();
-            log('配置加载完成:', config);
+
+            // 解析语言（必须在任何 t() 调用之前）
+            currentLang = resolveLanguage();
+
+            log(t('log_config_loaded'), config);
 
             // 注入样式（仅过滤类，不注入任何UI节点）
             injectStyles();
@@ -818,17 +1055,17 @@
                             }
                         }
                         if (visibleCount > config.maxVideos) {
-                            log('定时器检测到可见视频过多，重新执行限制');
+                            log(t('log_timer_retry'));
                             limitVideos();
                         }
                     }
                 }
             }, 5000);
 
-            log(' 脚本初始化完成，当前配置:', config);
+            log(t('log_init_done'), config);
 
         } catch (e) {
-            errorLog('初始化失败:', e);
+            errorLog(t('log_init_error'), e);
         }
     }
 
