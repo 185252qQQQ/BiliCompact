@@ -1,9 +1,9 @@
 // ==UserScript==
-// @name         更重的网页端B站精简
+// @name         网页端B站主页精简~ BiliCompact
 // @namespace    http://tampermonkey.net/
-// @version      2.3.0
+// @version      2.4.1
 // @license MIT
-// @description  你是否厌倦了B站网页端极多视频？想要更简要的界面？这个插件将帮助你只显示指定数量的视频，支持多种页面、黑/白名单、快捷键，配置持久化。非侵入式设计，不在B站页面注入任何UI元素。支持简中，繁中，英语。Are you tired of the overwhelming number of videos on Bilibili's web interface? Want a cleaner layout? This extension helps you display only a specified number of videos, with support for multiple pages, black/white lists, keyboard shortcuts, and persistent configuration. Its non-intrusive design injects no UI elements into Bilibili pages. Supports Simplified Chinese, Traditional Chinese, and English.
+// @description  你是否厌倦了B站网页端极多视频？想要更简要的界面？这个插件将帮助你只显示指定数量的视频，支持多种页面、黑/白名单、快捷键，配置持久化。非侵入式设计，不在B站页面注入任何UI元素。支持简中，繁中，英语。
 // @author       暮雨终将落下
 // @match        https://www.bilibili.com/
 // @match        https://www.bilibili.com/?*
@@ -33,6 +33,8 @@
 // @grant        GM_registerMenuCommand
 // @grant        GM_addStyle
 // @grant        GM_log
+// @downloadURL https://update.greasyfork.org/scripts/585777/%E7%BD%91%E9%A1%B5%E7%AB%AFB%E7%AB%99%E4%B8%BB%E9%A1%B5%E7%B2%BE%E7%AE%80~%20BiliCompact.user.js
+// @updateURL https://update.greasyfork.org/scripts/585777/%E7%BD%91%E9%A1%B5%E7%AB%AFB%E7%AB%99%E4%B8%BB%E9%A1%B5%E7%B2%BE%E7%AE%80~%20BiliCompact.meta.js
 // ==/UserScript==
 
 (function() {
@@ -295,17 +297,28 @@
     function DetectSelector() {
         if (EffectiveSelector) return EffectiveSelector;
 
-        // 候选选择器（优先使用标准类）
-        const Candidates = [
+        // 第一梯队：具体选择器（优先使用，构建联合选择器）
+        const SpecificCandidates = [
             '.bili-video-card',
+            '.feed-card',
+            '.bili-feed-card',
+            '.floor-single-card',
+            '.floor-card',
             '.video-item',
-            '.feed-item',
-            '.bili-feed .video-card',
-            '.feed-list .video-card',
+            '.feed-item'
+        ];
+
+        // 第二梯队：宽泛选择器（仅在具体选择器全部失败时使用）
+        const BroadCandidates = [
             '[class*="video-card"]',
             '[class*="bili-video"]',
-            '[class*="feed-item"]'
+            '[class*="feed-card"]',
+            '[class*="feed-item"]',
+            '[class*="floor-card"]'
         ];
+
+        // 收集所有能匹配到元素的具体选择器，构建联合选择器
+        const MatchedSelectors = [];
 
         // 首先尝试通过 data 属性查找
         const DataCandidates = [
@@ -316,41 +329,73 @@
             const Els = document.querySelectorAll(Sel);
             if (Els.length > 0) {
                 for (const El of Els) {
-                    const Card = El.closest('.bili-video-card, .video-item, .feed-item, [class*="video-card"], [class*="feed-item"]');
+                    const Card = El.closest('.bili-video-card, .feed-card, .bili-feed-card, .video-item, .feed-item, .floor-single-card, .floor-card, [class*="video-card"], [class*="feed-card"], [class*="feed-item"], [class*="floor-card"]');
                     if (Card) {
-                        EffectiveSelector = (Card.tagName === El.tagName) ? Sel :
+                        const CardSel = (Card.tagName === El.tagName) ? Sel :
                             Array.from(Card.classList).map(C => '.' + C).join('');
-                        Log(T('LogSelectorData'), EffectiveSelector);
-                        return EffectiveSelector;
+                        if (!MatchedSelectors.includes(CardSel)) {
+                            MatchedSelectors.push(CardSel);
+                        }
                     }
                 }
             }
         }
 
-        // 遍历普通候选
-        for (const Sel of Candidates) {
-            const Els = document.querySelectorAll(Sel);
-            if (Els.length > 0) {
-                EffectiveSelector = Sel;
-                Log(T('LogSelectorFound'), EffectiveSelector);
-                return EffectiveSelector;
+        // 遍历具体候选选择器，收集所有匹配到的
+        for (const Sel of SpecificCandidates) {
+            try {
+                const Els = document.querySelectorAll(Sel);
+                if (Els.length > 0) {
+                    if (!MatchedSelectors.includes(Sel)) {
+                        MatchedSelectors.push(Sel);
+                    }
+                }
+            } catch (E) {
+                // 跳过无效选择器
             }
         }
 
-        // 最后回退：查找包含 /video/ 链接的父级卡片
-        const Links = document.querySelectorAll('a[href*="/video/"]');
-        for (const Link of Links) {
-            let Parent = Link.parentElement;
-            let Depth = 0;
-            while (Parent && Depth < 5) {
-                const Cls = Parent.className || '';
-                if (Cls.includes('card') || Cls.includes('item') || Cls.includes('feed') || Cls.includes('video')) {
-                    EffectiveSelector = '.' + Cls.split(' ').join('.');
-                    Log(T('LogSelectorFallback'), EffectiveSelector);
+        if (MatchedSelectors.length > 0) {
+            EffectiveSelector = MatchedSelectors.join(', ');
+            Log(T('LogSelectorFound'), EffectiveSelector);
+            return EffectiveSelector;
+        }
+
+        // 具体选择器全部失败时，尝试宽泛选择器（仅取第一个匹配的）
+        for (const Sel of BroadCandidates) {
+            try {
+                const Els = document.querySelectorAll(Sel);
+                if (Els.length > 0) {
+                    EffectiveSelector = Sel;
+                    Log(T('LogSelectorFound'), EffectiveSelector);
                     return EffectiveSelector;
                 }
-                Parent = Parent.parentElement;
-                Depth++;
+            } catch (E) {
+                // 跳过无效选择器
+            }
+        }
+
+        // 最后回退：查找包含 /video/, /bangumi/ 或 live.bilibili.com 链接的父级卡片
+        const LinkSelectors = [
+            'a[href*="/video/"]',
+            'a[href*="/bangumi/"]',
+            'a[href*="live.bilibili.com"]'
+        ];
+        for (const LinkSel of LinkSelectors) {
+            const Links = document.querySelectorAll(LinkSel);
+            for (const Link of Links) {
+                let Parent = Link.parentElement;
+                let Depth = 0;
+                while (Parent && Depth < 5) {
+                    const Cls = Parent.className || '';
+                    if (Cls.includes('card') || Cls.includes('item') || Cls.includes('feed') || Cls.includes('video') || Cls.includes('floor')) {
+                        EffectiveSelector = '.' + Cls.split(' ').join('.');
+                        Log(T('LogSelectorFallback'), EffectiveSelector);
+                        return EffectiveSelector;
+                    }
+                    Parent = Parent.parentElement;
+                    Depth++;
+                }
             }
         }
 
@@ -361,11 +406,14 @@
     function DetectContainer() {
         if (VideoListContainer) return VideoListContainer;
         const Containers = [
+            '.bili-feed4',
             '.bili-feed',
+            '.feed2',
             '.feed-list',
             '.video-list',
             '.bili-video-list',
-            '.recommend-container'
+            '.recommend-container',
+            '.recommended-container_floor-aside'
         ];
         for (const Sel of Containers) {
             const El = document.querySelector(Sel);
@@ -377,6 +425,76 @@
         }
         VideoListContainer = document.body;
         return VideoListContainer;
+    }
+
+    // ======================== 卡片显示/隐藏辅助函数 ========================
+    // 需要同时隐藏的祖先包装器类名（解决 B站 CSS Grid 单元格不塌陷问题）
+    const WRAPPER_CLASSES = ['bili-feed-card', 'feed-card'];
+
+    function ApplyHideStyles(El) {
+        El.classList.add('BiliLimitedHide');
+        El.style.display = 'none';
+        El.style.visibility = 'hidden';
+        El.style.opacity = '0';
+        El.style.height = '0';
+        El.style.margin = '0';
+        El.style.padding = '0';
+        El.style.overflow = 'hidden';
+        El.style.flex = '0 0 0';
+        El.style.position = 'absolute';
+    }
+
+    function ClearHideStyles(El) {
+        El.classList.remove('BiliLimitedHide');
+        El.style.display = '';
+        El.style.visibility = '';
+        El.style.opacity = '';
+        El.style.height = '';
+        El.style.margin = '';
+        El.style.padding = '';
+        El.style.overflow = '';
+        El.style.position = '';
+        El.style.flex = '';
+    }
+
+    // 隐藏卡片及其祖先包装器（.bili-feed-card, .feed-card）
+    function HideCardTree(Card) {
+        ApplyHideStyles(Card);
+        let Ancestor = Card.parentElement;
+        while (Ancestor && Ancestor !== document.body) {
+            const Cls = (Ancestor.className || '').toLowerCase();
+            let IsWrapper = false;
+            for (let W = 0; W < WRAPPER_CLASSES.length; W++) {
+                if (Cls.indexOf(WRAPPER_CLASSES[W]) !== -1) {
+                    IsWrapper = true;
+                    break;
+                }
+            }
+            if (IsWrapper) {
+                ApplyHideStyles(Ancestor);
+            }
+            Ancestor = Ancestor.parentElement;
+        }
+    }
+
+    // 显示卡片及其祖先包装器
+    function ShowCardTree(Card) {
+        ClearHideStyles(Card);
+        let Ancestor = Card.parentElement;
+        while (Ancestor && Ancestor !== document.body) {
+            const Cls = (Ancestor.className || '').toLowerCase();
+            let IsWrapper = false;
+            for (let W = 0; W < WRAPPER_CLASSES.length; W++) {
+                if (Cls.indexOf(WRAPPER_CLASSES[W]) !== -1) {
+                    IsWrapper = true;
+                    break;
+                }
+            }
+            if (IsWrapper) {
+                ClearHideStyles(Ancestor);
+            }
+            Ancestor = Ancestor.parentElement;
+        }
     }
 
     // ======================== 核心过滤逻辑 ========================
@@ -396,18 +514,26 @@
             // 获取所有卡片
             let Cards = document.querySelectorAll(Selector);
             if (Cards.length === 0) {
-                const Links = document.querySelectorAll('a[href*="/video/"]');
+                // 扩展回退：同时查找 /video/, /bangumi/ 和 live.bilibili.com 链接
+                const LinkSelectors = [
+                    'a[href*="/video/"]',
+                    'a[href*="/bangumi/"]',
+                    'a[href*="live.bilibili.com"]'
+                ];
                 const ParentCards = new Set();
-                for (const Link of Links) {
-                    let Parent = Link.parentElement;
-                    let Depth = 0;
-                    while (Parent && Depth < 5) {
-                        if (Parent.className && (Parent.className.includes('card') || Parent.className.includes('item') || Parent.className.includes('feed'))) {
-                            ParentCards.add(Parent);
-                            break;
+                for (const LinkSel of LinkSelectors) {
+                    const Links = document.querySelectorAll(LinkSel);
+                    for (const Link of Links) {
+                        let Parent = Link.parentElement;
+                        let Depth = 0;
+                        while (Parent && Depth < 5) {
+                            if (Parent.className && (Parent.className.includes('card') || Parent.className.includes('item') || Parent.className.includes('feed') || Parent.className.includes('floor'))) {
+                                ParentCards.add(Parent);
+                                break;
+                            }
+                            Parent = Parent.parentElement;
+                            Depth++;
                         }
-                        Parent = Parent.parentElement;
-                        Depth++;
                     }
                 }
                 Cards = Array.from(ParentCards);
@@ -419,21 +545,68 @@
 
             let VideoCards = Array.from(Cards);
 
-            // 过滤非视频内容
+            // 去重：移除嵌套包装器，只保留最内层卡片（bili-video-card > 其他包装器）
+            // 避免同一个卡片被多次计数
+            const NestedRemoval = new Set();
+            for (let I = 0; I < VideoCards.length; I++) {
+                for (let J = 0; J < VideoCards.length; J++) {
+                    if (I !== J && VideoCards[I].contains(VideoCards[J])) {
+                        // VideoCards[I] 是 VideoCards[J] 的祖先 → 移除祖先
+                        NestedRemoval.add(I);
+                        break;
+                    }
+                }
+            }
+            if (NestedRemoval.size > 0) {
+                VideoCards = VideoCards.filter((_, Idx) => !NestedRemoval.has(Idx));
+            }
+
+            // 辅助函数：检查卡片链接是否指向特定域名/路径
+            function CardLinksTo(Card, Pattern) {
+                const Links = Card.querySelectorAll('a[href]');
+                for (const Link of Links) {
+                    if (Link.href.indexOf(Pattern) !== -1) return true;
+                }
+                return false;
+            }
+
+            // 过滤非视频内容 —— 收集被排除的卡片，稍后统一隐藏
+            const ExcludedCards = [];
             VideoCards = VideoCards.filter(Card => {
                 const Text = (Card.textContent || '').toLowerCase();
                 const Cls = (Card.className || '').toLowerCase();
+                // 检查 floor-title 标签（B站新版卡片分类标签）
+                const FloorTitle = Card.querySelector('.floor-title');
+                const FloorTitleText = FloorTitle ? (FloorTitle.textContent || '').toLowerCase() : '';
 
-                if (Config.ExcludeLive && (Cls.includes('live') || Text.includes('直播') || Text.includes('正在直播'))) {
-                    return false;
+                let ShouldExclude = false;
+
+                if (Config.ExcludeLive && (
+                    Cls.includes('live') ||
+                    Text.includes('直播') || Text.includes('正在直播') || Text.includes('直播中') ||
+                    FloorTitleText.includes('直播') || FloorTitleText.includes('赛事') ||
+                    CardLinksTo(Card, 'live.bilibili.com')
+                )) {
+                    ShouldExclude = true;
                 }
-                if (Config.ExcludeAd && (Cls.includes('ad') || Cls.includes('advert') || Text.includes('广告') || Text.includes('sponsor'))) {
-                    return false;
+                if (!ShouldExclude && Config.ExcludeAd && (Cls.includes('ad') || Cls.includes('advert') || Text.includes('广告') || Text.includes('sponsor'))) {
+                    ShouldExclude = true;
                 }
-                if (Config.ExcludeBangumi && (Cls.includes('bangumi') || Text.includes('番剧') || Text.includes('追番'))) {
-                    return false;
+                if (!ShouldExclude && Config.ExcludeBangumi && (
+                    Cls.includes('bangumi') ||
+                    Text.includes('番剧') || Text.includes('追番') ||
+                    Text.includes('国创') ||
+                    FloorTitleText.includes('番剧') || FloorTitleText.includes('国创') ||
+                    CardLinksTo(Card, '/bangumi/')
+                )) {
+                    ShouldExclude = true;
                 }
-                if (Config.ExcludePaid && (Text.includes('付费') || Text.includes('课程') || Text.includes('￥') || Text.includes('¥'))) {
+                if (!ShouldExclude && Config.ExcludePaid && (Text.includes('付费') || Text.includes('课程') || Text.includes('￥') || Text.includes('¥'))) {
+                    ShouldExclude = true;
+                }
+
+                if (ShouldExclude) {
+                    ExcludedCards.push(Card);
                     return false;
                 }
                 return true;
@@ -493,50 +666,18 @@
             const ToHide = VideoCards.slice(Max);
 
             // 显示前max个
-            ToShow.forEach(Card => {
-                Card.classList.remove('BiliLimitedHide');
-                Card.style.display = '';
-                Card.style.visibility = '';
-                Card.style.opacity = '';
-                Card.style.height = '';
-                Card.style.margin = '';
-                Card.style.padding = '';
-                Card.style.overflow = '';
-                Card.style.position = '';
-                Card.style.flex = '';
-            });
+            ToShow.forEach(Card => { ShowCardTree(Card); });
 
-            // 隐藏其余
-            ToHide.forEach(Card => {
-                Card.classList.add('BiliLimitedHide');
-                Card.style.display = 'none';
-                Card.style.visibility = 'hidden';
-                Card.style.opacity = '0';
-                Card.style.height = '0';
-                Card.style.margin = '0';
-                Card.style.padding = '0';
-                Card.style.overflow = 'hidden';
-                Card.style.flex = '0 0 0';
-                Card.style.position = 'absolute';
-            });
+            // 隐藏超出限制的卡片 以及 被过滤规则排除的卡片
+            const AllToHide = ToHide.concat(ExcludedCards);
+            AllToHide.forEach(Card => { HideCardTree(Card); });
 
             // 确保推广位和置顶卡片可见
-            [...PromotedCards, ...TopCards].forEach(Card => {
-                Card.classList.remove('BiliLimitedHide');
-                Card.style.display = '';
-                Card.style.visibility = '';
-                Card.style.opacity = '';
-                Card.style.height = '';
-                Card.style.margin = '';
-                Card.style.padding = '';
-                Card.style.overflow = '';
-                Card.style.position = '';
-                Card.style.flex = '';
-            });
+            [...PromotedCards, ...TopCards].forEach(Card => { ShowCardTree(Card); });
 
-            const Total = VideoCards.length + PromotedCards.length + TopCards.length;
+            const Total = VideoCards.length + ExcludedCards.length + PromotedCards.length + TopCards.length;
             const Shown = ToShow.length + PromotedCards.length + TopCards.length;
-            Log(T('LogProcessed', Total, Shown, ToHide.length));
+            Log(T('LogProcessed', Total, Shown, ToHide.length + ExcludedCards.length));
 
         } catch (E) {
             ErrorLog(T('LogErrorLimit'), E);
@@ -548,16 +689,7 @@
         if (!Selector) return;
         const Cards = document.querySelectorAll(Selector);
         for (const Card of Cards) {
-            Card.classList.remove('BiliLimitedHide');
-            Card.style.display = '';
-            Card.style.visibility = '';
-            Card.style.opacity = '';
-            Card.style.height = '';
-            Card.style.margin = '';
-            Card.style.padding = '';
-            Card.style.overflow = '';
-            Card.style.position = '';
-            Card.style.flex = '';
+            ShowCardTree(Card);
         }
     }
 
