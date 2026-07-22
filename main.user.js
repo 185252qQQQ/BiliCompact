@@ -1,10 +1,10 @@
 // ==UserScript==
 // @name         网页端B站主页精简~ BiliCompact
 // @namespace    http://tampermonkey.net/
-// @version      2.4.1
+// @version      2.5.1
 // @license MIT
-// @description  你是否厌倦了B站网页端极多视频？想要更简要的界面？这个插件将帮助你只显示指定数量的视频，支持多种页面、黑/白名单、快捷键，配置持久化。非侵入式设计，不在B站页面注入任何UI元素。支持简中，繁中，英语。
-// @author       暮雨终将落下
+// @description  你是否厌倦了B站网页端极多视频？想要更简要的界面？这个插件将帮助你只显示指定数量的视频，支持多种页面、黑/白名单、配置持久化。非侵入式设计，不在B站页面注入任何UI元素。支持简中，繁中，英语。
+// @author       TwilightRain
 // @match        https://www.bilibili.com/
 // @match        https://www.bilibili.com/?*
 // @match        https://www.bilibili.com/index/*
@@ -33,6 +33,7 @@
 // @grant        GM_registerMenuCommand
 // @grant        GM_addStyle
 // @grant        GM_log
+// @icon         https://www.bilibili.com/favicon.ico
 // @downloadURL https://update.greasyfork.org/scripts/585777/%E7%BD%91%E9%A1%B5%E7%AB%AFB%E7%AB%99%E4%B8%BB%E9%A1%B5%E7%B2%BE%E7%AE%80~%20BiliCompact.user.js
 // @updateURL https://update.greasyfork.org/scripts/585777/%E7%BD%91%E9%A1%B5%E7%AB%AFB%E7%AB%99%E4%B8%BB%E9%A1%B5%E7%B2%BE%E7%AE%80~%20BiliCompact.meta.js
 // ==/UserScript==
@@ -54,7 +55,6 @@
             LogErrorLimit: 'limitVideos 出错:',
             LogContainerFound: '探测到容器:',
             LogConfigLoaded: '配置加载完成:',
-            LogShortcut: '快捷键: {0}',
             LogStatus: '精简状态: {0}',
             LogStatusOn: '已开启',
             LogStatusOff: '已关闭',
@@ -70,6 +70,7 @@
             MenuRefresh: '手动刷新精简',
             MenuToggle: '切换精简状态',
             MenuQuickSet: '快速设数量',
+            MenuCommentPurifier: '切换评论净化',
 
             // Panel
             PanelTitle: 'B站精简设置',
@@ -82,12 +83,11 @@
             PanelExcludeBangumi: '排除番剧',
             PanelExcludePaid: '排除付费课程',
             PanelKeepPromoted: '保留推广位',
-            PanelEnableShortcuts: '启用快捷键',
             PanelKeepUpids: '保留UP主ID（逗号分隔）',
             PanelDebug: '调试模式',
+            PanelEnableCommentPurifier: '启用评论净化（删除@提及，隐藏短评论）',
             PanelLanguage: '界面语言 / Language',
             PanelLanguageAuto: '自动 (Auto)',
-            PanelHint: '快捷键: Ctrl+Shift+数字 快速调整数量（如 Ctrl+Shift+5 设为5，0 关闭精简）',
             PanelBtnPause: '暂停精简',
             PanelBtnResume: '启用精简',
             PanelBtnReset: '恢复默认',
@@ -109,7 +109,6 @@
             LogErrorLimit: 'limitVideos 出錯:',
             LogContainerFound: '探測到容器:',
             LogConfigLoaded: '設定載入完成:',
-            LogShortcut: '快速鍵: {0}',
             LogStatus: '精簡狀態: {0}',
             LogStatusOn: '已開啟',
             LogStatusOff: '已關閉',
@@ -125,6 +124,7 @@
             MenuRefresh: '手動重新整理精簡',
             MenuToggle: '切換精簡狀態',
             MenuQuickSet: '快速設數量',
+            MenuCommentPurifier: '切換評論淨化',
 
             // Panel
             PanelTitle: 'B站精簡設定',
@@ -137,12 +137,11 @@
             PanelExcludeBangumi: '排除番劇',
             PanelExcludePaid: '排除付費課程',
             PanelKeepPromoted: '保留推廣位',
-            PanelEnableShortcuts: '啟用快速鍵',
             PanelKeepUpids: '保留UP主ID（逗號分隔）',
             PanelDebug: '除錯模式',
+            PanelEnableCommentPurifier: '啟用評論淨化（刪除@提及，隱藏短評論）',
             PanelLanguage: '介面語言 / Language',
             PanelLanguageAuto: '自動 (Auto)',
-            PanelHint: '快速鍵: Ctrl+Shift+數字 快速調整數量（如 Ctrl+Shift+5 設為5，0 關閉精簡）',
             PanelBtnPause: '暫停精簡',
             PanelBtnResume: '啟用精簡',
             PanelBtnReset: '回復預設',
@@ -164,7 +163,6 @@
             LogErrorLimit: 'limitVideos error:',
             LogContainerFound: 'Container detected:',
             LogConfigLoaded: 'Config loaded:',
-            LogShortcut: 'Shortcut: {0}',
             LogStatus: 'Compact status: {0}',
             LogStatusOn: 'Enabled',
             LogStatusOff: 'Disabled',
@@ -180,6 +178,7 @@
             MenuRefresh: 'Refresh Compact',
             MenuToggle: 'Toggle Compact',
             MenuQuickSet: 'Quick Set Count',
+            MenuCommentPurifier: 'Toggle Comment Purifier',
 
             // Panel
             PanelTitle: 'BiliCompact Settings',
@@ -192,12 +191,11 @@
             PanelExcludeBangumi: 'Exclude bangumi',
             PanelExcludePaid: 'Exclude paid courses',
             PanelKeepPromoted: 'Keep promoted items',
-            PanelEnableShortcuts: 'Enable shortcuts',
             PanelKeepUpids: 'Whitelist UP IDs (comma-separated)',
             PanelDebug: 'Debug mode',
+            PanelEnableCommentPurifier: 'Enable comment purifier (remove @mentions, hide short comments)',
             PanelLanguage: 'Language / 語言',
             PanelLanguageAuto: 'Auto',
-            PanelHint: 'Shortcuts: Ctrl+Shift+Number to set max (e.g. Ctrl+Shift+5 = 5, 0 = disable)',
             PanelBtnPause: 'Pause',
             PanelBtnResume: 'Resume',
             PanelBtnReset: 'Reset Defaults',
@@ -247,9 +245,10 @@
         ExcludePaid: true,            // 排除付费课程
         KeepSpecialUPIDs: [],         // 保留的UP主ID列表（数字）
         KeepPromoted: false,          // 保留推广位（不计入数量）
-        EnableShortcuts: true,        // 启用快捷键
         Language: 'auto',             // 界面语言: auto | zh_CN | zh_TW | en_US
-        Debug: false                  // 调试模式
+        Debug: false,                 // 调试模式
+        EnableCommentPurifier: false, // 评论净化器 (删除@提及，隐藏短评论)
+        RemovedElements: {},          // 元素去除: { presetId: true/false }
     };
 
     // ======================== 状态 ========================
@@ -259,6 +258,8 @@
     let VideoListContainer = null;     // 缓存的列表容器
     let Observer = null;
     let DebounceTimer = null;
+    let PurifierStarted = false;         // 评论净化器是否已启动
+    let PurifierObservers = [];          // 评论净化器的 MutationObserver 列表
     let LastRun = 0;
     const THROTTLE_INTERVAL = 200;     // 节流间隔（ms）
 
@@ -290,6 +291,323 @@
             try {
                 GM_setValue(Key, Val);
             } catch (E) {}
+        }
+    }
+
+    // ======================== 评论净化器 (Comment Purifier) ========================
+
+    /**
+     * 检查页面中是否存在 BilibiliBlocker 的标记
+     * Blocker 会在 bili-comment-user-info 的 shadowRoot 中插入 button[gz_type]
+     * 一次同步检测，不做任何等待；没装就是没装，直接跳过协调。
+     */
+    function purifierHasBlockerInstalled() {
+        try {
+            const comments = document.querySelector('bili-comments');
+            if (!comments?.shadowRoot) return false;
+            const threads = comments.shadowRoot.querySelectorAll('bili-comment-thread-renderer');
+            if (threads.length === 0) return false;
+            return Array.from(threads).some(thread => {
+                const comment = thread.shadowRoot?.getElementById('comment');
+                if (!comment?.shadowRoot) return false;
+                const userInfo = comment.shadowRoot.querySelector('bili-comment-user-info');
+                if (!userInfo?.shadowRoot) return false;
+                const info = userInfo.shadowRoot.getElementById('info');
+                return !!info?.querySelector('button[gz_type]');
+            });
+        } catch { return false; }
+    }
+
+    /**
+     * 从 bili-comment-renderer 内部获取 #contents 容器
+     * 穿透 2 层 Shadow DOM: bili-comment-renderer -> bili-rich-text
+     */
+    function purifierGetContentsEl(renderer) {
+        try {
+            const richText = renderer.shadowRoot.querySelector('bili-rich-text');
+            if (richText && richText.shadowRoot) {
+                return richText.shadowRoot.getElementById('contents');
+            }
+        } catch (_) {}
+        return null;
+    }
+
+    /**
+     * 查找页面上所有 <bili-comment-renderer>
+     * 从 <bili-comments> 开始穿透 Shadow DOM
+     */
+    function purifierFindRenderers() {
+        const list = [];
+        try {
+            const comments = document.querySelector('bili-comments');
+            if (comments && comments.shadowRoot) {
+                const threads = comments.shadowRoot.querySelectorAll('bili-comment-thread-renderer');
+                for (const thread of threads) {
+                    if (thread.shadowRoot) {
+                        thread.shadowRoot.querySelectorAll('bili-comment-renderer').forEach(r => list.push(r));
+                    }
+                }
+            }
+        } catch (_) {}
+        return list;
+    }
+
+    /**
+     * 处理单条评论：
+     *   a. 删除所有 @提及 <a data-type="mention">
+     *   b. 清理后有效字符 < 5 -> 隐藏整条评论
+     */
+    function purifierProcessRenderer(renderer) {
+        const doneKey = 'bcPurified';
+        if (renderer.dataset[doneKey]) return;
+        renderer.dataset[doneKey] = '1';
+
+        const contents = purifierGetContentsEl(renderer);
+        if (!contents) return;
+
+        // 删除所有 @提及标签
+        const mentions = contents.querySelectorAll('a[data-type="mention"]');
+        for (const m of mentions) {
+            m.remove();
+        }
+
+        // 计算剩余有效字符
+        const remaining = contents.textContent.replace(/\s+/g, '').trim();
+
+        // 不足5字 -> 隐藏整条评论
+        if (remaining.length < 5) {
+            renderer.style.display = 'none';
+            try {
+                const threadRenderer = renderer.getRootNode().host;
+                if (threadRenderer) threadRenderer.style.display = 'none';
+            } catch (_) {}
+        }
+    }
+
+    /**
+     * 启动评论净化器
+     * - 监听评论区动态加载，自动处理新增评论
+     * - 首次扫描零延迟；检测到 Blocker 只在日志中标记，不影响流程
+     */
+    function startCommentPurifier() {
+        if (!Config.EnableCommentPurifier) return;
+        if (PurifierStarted) return;
+        PurifierStarted = true;
+
+        let scanTimer = null;
+
+        function scheduleScan() {
+            if (scanTimer) clearTimeout(scanTimer);
+            scanTimer = setTimeout(() => {
+                purifierFindRenderers().forEach(purifierProcessRenderer);
+                scanTimer = null;
+            }, 800);
+        }
+
+        // MutationObserver 监听 bili-comments 的 shadowRoot
+        try {
+            const comments = document.querySelector('bili-comments');
+            if (comments?.shadowRoot) {
+                const obs = new MutationObserver(() => scheduleScan());
+                obs.observe(comments.shadowRoot, { childList: true, subtree: true });
+                PurifierObservers.push(obs);
+            }
+        } catch (_) {}
+
+        // MutationObserver 监听 document.body（兜底）
+        const obsBody = new MutationObserver(() => scheduleScan());
+        obsBody.observe(document.body, { childList: true, subtree: true });
+        PurifierObservers.push(obsBody);
+
+        // 首次扫描——不等待、不轮询，直接执行
+        purifierFindRenderers().forEach(purifierProcessRenderer);
+
+        const hasBlocker = purifierHasBlockerInstalled();
+        Log('评论净化器已启动' + (hasBlocker ? '（检测到 BilibiliBlocker，兼容模式）' : ''));
+    }
+
+    /**
+     * 停止评论净化器
+     * - 断开所有 MutationObserver
+     * - 已处理的评论保持状态不变
+     */
+    function stopCommentPurifier() {
+        PurifierStarted = false;
+        for (const obs of PurifierObservers) {
+            try { obs.disconnect(); } catch (_) {}
+        }
+        PurifierObservers = [];
+        Log('评论净化器已停止');
+    }
+
+    /**
+     * 切换评论净化器（供 TM 菜单命令调用）
+     * 同时保存配置变更
+     */
+    function toggleCommentPurifier() {
+        Config.EnableCommentPurifier = !Config.EnableCommentPurifier;
+        SaveConfig({ EnableCommentPurifier: Config.EnableCommentPurifier });
+        if (Config.EnableCommentPurifier) {
+            startCommentPurifier();
+        } else {
+            stopCommentPurifier();
+        }
+    }
+
+    // ======================== 元素去除 (Element Removal) ========================
+
+    /**
+     * 可去除的元素预设列表
+     * 每条包含：唯一 id、适用域名 host、显示名称 name、CSS选择器列表 selectors（多版本兼容）
+     */
+    const ELEMENT_REMOVAL_PRESETS = [
+        {
+            id: 'carousel',
+            host: 'www.bilibili.com',
+            name: '首页轮播图',
+            selectors: [
+                '#i_cecream > div.bili-feed4:last-child > main.bili-feed4-layout:nth-child(3) > div.feed2:last-child > div.recommended-container_floor-aside > div.container.is-version8:first-child > div.recommended-swipe.grid-anchor:first-child > div.recommended-swipe-core > div.recommended-swipe-body:last-child > div.carousel-area > div.carousel',
+                '#app > div.bili-feed4:last-child > main.bili-feed4-layout:nth-child(2) > div.feed2:last-child > div.recommended-container_floor-aside > div.container.is-version8:first-child > div.recommended-swipe:first-child',
+                '#app > div.bili-feed4:last-child > main.bili-feed4-layout:nth-child(3) > div.feed2:last-child > div.recommended-container_floor-aside > div.container.is-version8:first-child > div.recommended-swipe:first-child'
+            ]
+        },
+        {
+            id: 'right-channel',
+            host: 'www.bilibili.com',
+            name: '右侧频道导航',
+            selectors: [
+                '#i_cecream > div.bili-feed4:last-child > div.bili-header.large-header:first-child > div.bili-header__channel:nth-child(3) > div.right-channel-container:last-child',
+                '#app > div.bili-feed4:last-child > div.bili-header.large-header:first-child > div.bili-header__channel:last-child > div.right-channel-container:last-child'
+            ]
+        },
+        {
+            id: 'channel-icons',
+            host: 'www.bilibili.com',
+            name: '频道图标行',
+            selectors: [
+                '#i_cecream > div.bili-feed4:last-child > div.bili-header.large-header:first-child > div.bili-header__channel:nth-child(3) > div.channel-icons:first-child',
+                '#app > div.bili-feed4:last-child > div.bili-header.large-header:first-child > div.bili-header__channel:last-child > div.channel-icons:first-child'
+            ]
+        },
+        {
+            id: 'channel-bar',
+            host: 'www.bilibili.com',
+            name: '频道栏（整体）',
+            selectors: [
+                '#app > div.bili-feed4:last-child > div.bili-header.large-header:first-child > div.bili-header__channel:last-child'
+            ]
+        },
+        {
+            id: 'creation-entry',
+            host: 'www.bilibili.com',
+            name: '创作中心入口',
+            selectors: [
+                '#i_cecream > div.bili-feed4:last-child > div.bili-header.large-header:first-child > div.bili-header__bar:first-child > ul.left-entry:first-child > li.v-popover-wrap.left-loc-entry:nth-child(8) > div'
+            ]
+        },
+        {
+            id: 'upload-entry',
+            host: 'www.bilibili.com',
+            name: '投稿入口',
+            selectors: [
+                '#i_cecream > div.bili-feed4:last-child > div.bili-header.large-header:first-child > div.bili-header__bar:first-child > ul.left-entry:first-child > li.v-popover-wrap.left-loc-entry:nth-child(9) > div > a.loc-entry.loc-moveclip'
+            ]
+        },
+        {
+            id: 'live-entry',
+            host: 'www.bilibili.com',
+            name: '直播入口',
+            selectors: [
+                '#i_cecream > div.bili-feed4:last-child > div.bili-header.large-header:first-child > div.bili-header__bar:first-child > ul.left-entry:first-child > li.v-popover-wrap:last-child'
+            ]
+        },
+        {
+            id: 'dynamic-entry',
+            host: 'www.bilibili.com',
+            name: '动态入口',
+            selectors: [
+                '#i_cecream > div.bili-feed4:last-child > div.bili-header.large-header:first-child > div.bili-header__bar:first-child > ul.left-entry:first-child > li.v-popover-wrap:nth-child(5)'
+            ]
+        },
+        {
+            id: 'vip-entry',
+            host: 'www.bilibili.com',
+            name: '大会员VIP',
+            selectors: [
+                '#i_cecream > div.bili-feed4:last-child > div.bili-header.large-header:first-child > div.bili-header__bar:first-child > ul.right-entry:last-child > div.vip-wrap:nth-child(2)'
+            ]
+        },
+        {
+            id: 'adblock-tips',
+            host: 'www.bilibili.com',
+            name: '广告提示条',
+            selectors: [
+                '#i_cecream > div.adblock-tips:nth-child(2)'
+            ]
+        },
+        {
+            id: 'left-entries',
+            host: 'www.bilibili.com',
+            name: '左侧全部入口',
+            selectors: [
+                '#app > div.bili-feed4:last-child > div.bili-header.large-header:first-child > div.bili-header__bar:first-child > ul.left-entry:first-child'
+            ]
+        },
+        {
+            id: 'palette-btn',
+            host: 'www.bilibili.com',
+            name: '调色板浮窗',
+            selectors: [
+                '#app > div.bili-feed4:last-child > div.palette-button-outer.palette-feed4:nth-child(4)'
+            ]
+        },
+        {
+            id: 'space-notif',
+            host: 'space.bilibili.com',
+            name: '空间-消息通知',
+            selectors: [
+                '#biliMainHeader > div.bili-header > div.bili-header__bar.mini-header:first-child > ul.left-entry:first-child > li.v-popover-wrap:last-child'
+            ]
+        }
+    ];
+
+    let ElementRemovalStates = {};  // { presetId: { element, originalDisplay } }
+
+    /**
+     * 应用/恢复元素去除
+     * 按配置隐藏勾选的元素，恢复取消勾选的元素
+     */
+    function applyElementRemoval() {
+        const enabled = Config.RemovedElements || {};
+        const host = location.hostname;
+
+        // 先恢复已取消勾选的元素
+        for (const id of Object.keys(ElementRemovalStates)) {
+            if (!enabled[id]) {
+                ElementRemovalStates[id].element.style.display = ElementRemovalStates[id].originalDisplay;
+                delete ElementRemovalStates[id];
+            }
+        }
+
+        // 再应用新勾选的元素
+        for (const preset of ELEMENT_REMOVAL_PRESETS) {
+            if (preset.host !== host) continue;
+            if (!enabled[preset.id]) continue;
+            if (ElementRemovalStates[preset.id]) continue; // 已隐藏
+
+            for (const sel of preset.selectors) {
+                try {
+                    const el = document.querySelector(sel);
+                    if (el) {
+                        ElementRemovalStates[preset.id] = {
+                            element: el,
+                            originalDisplay: el.style.display || ''
+                        };
+                        el.style.display = 'none';
+                        break; // 找到一个版本即隐藏，不再试其他
+                    }
+                } catch (_) {}
+            }
         }
     }
 
@@ -886,11 +1204,15 @@
             <label>${T('PanelExcludeBangumi')} <input type="checkbox" id="CfgExcludeBangumi" ${Config.ExcludeBangumi ? 'checked' : ''}></label>
             <label>${T('PanelExcludePaid')} <input type="checkbox" id="CfgExcludePaid" ${Config.ExcludePaid ? 'checked' : ''}></label>
             <label>${T('PanelKeepPromoted')} <input type="checkbox" id="CfgKeepPromoted" ${Config.KeepPromoted ? 'checked' : ''}></label>
-            <label>${T('PanelEnableShortcuts')} <input type="checkbox" id="CfgEnableShortcuts" ${Config.EnableShortcuts ? 'checked' : ''}></label>
             <label>${T('PanelDebug')} <input type="checkbox" id="CfgDebug" ${Config.Debug ? 'checked' : ''}></label>
+            <label>${T('PanelEnableCommentPurifier')} <input type="checkbox" id="CfgEnablePurifier" ${Config.EnableCommentPurifier ? 'checked' : ''}></label>
             <label>${T('PanelLanguage')} <select id="CfgLanguage">${LangSelectHTML}</select></label>
             <label>${T('PanelKeepUpids')} <input type="text" id="CfgKeepUids" value="${(Config.KeepSpecialUPIDs || []).join(',')}"></label>
-            <div class="Hint">${T('PanelHint')}</div>
+            <hr style="margin:8px 0;border:none;border-top:1px solid #333">
+            <h4 style="margin:4px 0 8px;font-size:13px;color:#fb7299">${'去除元素'}</h4>
+            ${ELEMENT_REMOVAL_PRESETS.map(function(P) {
+                return '<label><span style="flex:1">' + P.name + '</span> <input type="checkbox" id="CfgRm_' + P.id + '" ' + ((Config.RemovedElements || {})[P.id] ? 'checked' : '') + '></label>';
+            }).join('')}
             <div class="BtnRow">
                 <button class="Secondary" id="CfgToggle">${IsActive ? T('PanelBtnPause') : T('PanelBtnResume')}</button>
                 <button class="Secondary" id="CfgReset">${T('PanelBtnReset')}</button>
@@ -915,10 +1237,18 @@
                 ExcludeBangumi: document.getElementById('CfgExcludeBangumi').checked,
                 ExcludePaid: document.getElementById('CfgExcludePaid').checked,
                 KeepPromoted: document.getElementById('CfgKeepPromoted').checked,
-                EnableShortcuts: document.getElementById('CfgEnableShortcuts').checked,
                 Language: NewLang,
                 KeepSpecialUPIDs: document.getElementById('CfgKeepUids').value.split(',').map(S => S.trim()).filter(Boolean).map(Number),
-                Debug: document.getElementById('CfgDebug').checked
+                Debug: document.getElementById('CfgDebug').checked,
+                EnableCommentPurifier: document.getElementById('CfgEnablePurifier').checked,
+                RemovedElements: (function() {
+                    var obj = {};
+                    for (var I = 0; I < ELEMENT_REMOVAL_PRESETS.length; I++) {
+                        var cb = document.getElementById('CfgRm_' + ELEMENT_REMOVAL_PRESETS[I].id);
+                        if (cb) obj[ELEMENT_REMOVAL_PRESETS[I].id] = cb.checked;
+                    }
+                    return obj;
+                })()
             };
             Object.assign(Config, NewConfig);
             SaveConfig(Config);
@@ -930,6 +1260,14 @@
 
             DestroyPanel();
             LimitVideos();
+            applyElementRemoval();
+
+            // 评论净化器开关变更后立即启停
+            if (NewConfig.EnableCommentPurifier) {
+                startCommentPurifier();
+            } else {
+                stopCommentPurifier();
+            }
 
             // 语言变更后重新打开面板（让用户看到新语言）
             if (LangChanged) {
@@ -948,10 +1286,16 @@
             document.getElementById('CfgExcludeBangumi').checked = Config.ExcludeBangumi;
             document.getElementById('CfgExcludePaid').checked = Config.ExcludePaid;
             document.getElementById('CfgKeepPromoted').checked = Config.KeepPromoted;
-            document.getElementById('CfgEnableShortcuts').checked = Config.EnableShortcuts;
             document.getElementById('CfgDebug').checked = Config.Debug;
+            document.getElementById("CfgEnablePurifier").checked = false;
             document.getElementById('CfgKeepUids').value = '';
+            for (var I = 0; I < ELEMENT_REMOVAL_PRESETS.length; I++) {
+                var cb = document.getElementById('CfgRm_' + ELEMENT_REMOVAL_PRESETS[I].id);
+                if (cb) cb.checked = false;
+            }
+            stopCommentPurifier();
             LimitVideos();
+            applyElementRemoval();
         });
 
         document.getElementById('CfgToggle').addEventListener('click', function() {
@@ -1000,31 +1344,6 @@
         }
     }
 
-    // ======================== 快捷键 ========================
-    function InitShortcuts() {
-        if (!Config.EnableShortcuts) return;
-        document.addEventListener('keydown', function(E) {
-            if (E.ctrlKey && E.shiftKey && E.key >= '0' && E.key <= '9') {
-                E.preventDefault();
-                const Num = parseInt(E.key);
-                if (Num === 0) {
-                    if (IsActive) {
-                        IsActive = false;
-                        RestoreAllVideos();
-                    }
-                    Log(T('LogShortcut', T('LogStatusOff')));
-                } else {
-                    Config.MaxVideos = Num;
-                    SaveConfig({ MaxVideos: Num });
-                    if (!IsActive) {
-                        IsActive = true;
-                    }
-                    LimitVideos();
-                    Log(T('LogShortcut', Num));
-                }
-            }
-        });
-    }
 
     // ======================== 观察者 ========================
     function InitObserver() {
@@ -1101,6 +1420,7 @@
                     DetectSelector();
                     DetectContainer();
                     LimitVideos();
+                    applyElementRemoval();
                 }, 500);
             }
         }, 1000);
@@ -1124,6 +1444,9 @@
                 RestoreAllVideos();
             }
             Log(T('LogStatus'), IsActive ? T('LogStatusOn') : T('LogStatusOff'));
+        });
+        GM_registerMenuCommand(T('MenuCommentPurifier'), function() {
+            toggleCommentPurifier();
         });
         GM_registerMenuCommand(T('MenuQuickSet'), function() {
             const Num = prompt(T('PromptQuickSet'), Config.MaxVideos);
@@ -1159,20 +1482,21 @@
             // 注册菜单（TM菜单是唯一入口，不在页面注入UI）
             RegisterMenu();
 
+            // 启动评论净化器（如果启用）
+            startCommentPurifier();
+
             // 启动观察
             InitObserver();
 
             // 路由监听
             WatchUrlChange();
 
-            // 快捷键
-            InitShortcuts();
-
             // 初次执行
             setTimeout(() => {
                 DetectSelector();
                 DetectContainer();
                 LimitVideos();
+                applyElementRemoval();
             }, 500);
 
             // 定时后备检查
@@ -1193,6 +1517,8 @@
                         }
                     }
                 }
+                // 定时重试元素去除（B站SPA可能动态替换DOM）
+                applyElementRemoval();
             }, 5000);
 
             Log(T('LogInitDone'), Config);
