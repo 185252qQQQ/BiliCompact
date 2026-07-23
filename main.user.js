@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         网页端B站主页精简~ BiliCompact
 // @namespace    http://tampermonkey.net/
-// @version      2.5.2
+// @version      2.6.0
 // @license MIT
 // @description  你是否厌倦了B站网页端极多视频？想要更简要的界面？这个插件将帮助你只显示指定数量的视频，支持多种页面、黑/白名单、配置持久化。非侵入式设计，不在B站页面注入任何UI元素。支持简中，繁中，英语。
 // @author       TwilightRain
@@ -94,6 +94,10 @@
             PanelBtnReset: '恢复默认',
             PanelBtnSave: '保存并应用',
             PanelBtnClose: '关闭',
+            PanelColorMode: '颜色模式',
+            PanelColorAuto: '跟随系统',
+            PanelColorDark: '深色',
+            PanelColorLight: '浅色',
 
             // Prompt
             PromptQuickSet: '输入最大显示视频数量（1-100）：',
@@ -148,6 +152,10 @@
             PanelBtnReset: '回復預設',
             PanelBtnSave: '儲存並套用',
             PanelBtnClose: '關閉',
+            PanelColorMode: '顏色模式',
+            PanelColorAuto: '跟隨系統',
+            PanelColorDark: '深色',
+            PanelColorLight: '淺色',
 
             // Prompt
             PromptQuickSet: '輸入最大顯示影片數量（1-100）：',
@@ -202,6 +210,10 @@
             PanelBtnReset: 'Reset Defaults',
             PanelBtnSave: 'Save & Apply',
             PanelBtnClose: 'Close',
+            PanelColorMode: 'Color Mode',
+            PanelColorAuto: 'Auto (System)',
+            PanelColorDark: 'Dark',
+            PanelColorLight: 'Light',
 
             // Prompt
             PromptQuickSet: 'Enter max videos to show (1-100):',
@@ -250,6 +262,7 @@
         Debug: false,                 // 调试模式
         EnableCommentPurifier: false, // 评论净化器 (删除@提及，隐藏短评论)
         RemovedElements: {},          // 元素去除: { presetId: true/false }
+        ColorMode: 'auto',            // 颜色模式: auto | dark | light
     };
 
     // ======================== 状态 ========================
@@ -1051,15 +1064,31 @@
                 font-size: 14px;
             }
             .BiliCompactPanel {
-                background: #1e1e1e;
-                color: #eee;
+                /* Dark theme (default) variables */
+                --bg: #1e1e1e;
+                --text: #eee;
+                --text-secondary: #ccc;
+                --text-heading: #fff;
+                --input-bg: #2a2a2a;
+                --border: #333;
+                --border-light: #444;
+                --hr: #333;
+                --accent: #fb7299;
+                --accent-hover: #ff85a8;
+                --badge-off: #666;
+                --btn-secondary-bg: #444;
+                --btn-secondary-hover: #555;
+                --btn-secondary-text: #fff;
+                --collapse-hover: #333;
+
+                background: var(--bg);
+                color: var(--text);
                 padding: 24px 30px;
                 border-radius: 16px;
                 box-shadow: 0 8px 40px rgba(0,0,0,0.6);
                 min-width: 340px;
                 max-width: 420px;
-                border: 1px solid #333;
-                backdrop-filter: blur(8px);
+                border: 1px solid var(--border);
                 display: flex;
                 flex-direction: column;
                 gap: 12px;
@@ -1067,10 +1096,28 @@
                 max-height: 85vh;
                 overflow-y: auto;
             }
+            .BiliCompactPanel.light-mode {
+                --bg: #ffffff;
+                --text: #333;
+                --text-secondary: #555;
+                --text-heading: #111;
+                --input-bg: #f5f5f5;
+                --border: #ddd;
+                --border-light: #e0e0e0;
+                --hr: #eee;
+                --accent: #00AEEC;
+                --accent-hover: #33c0f0;
+                --badge-off: #bbb;
+                --btn-secondary-bg: #eee;
+                --btn-secondary-hover: #ddd;
+                --btn-secondary-text: #333;
+                --collapse-hover: #eee;
+                box-shadow: 0 4px 24px rgba(0,0,0,0.12);
+            }
             .BiliCompactPanel h3 {
                 margin: 0 0 4px 0;
                 font-weight: 500;
-                color: #fff;
+                color: var(--text-heading);
                 font-size: 16px;
             }
             .BiliCompactPanel label {
@@ -1078,14 +1125,14 @@
                 justify-content: space-between;
                 align-items: center;
                 font-size: 14px;
-                color: #ccc;
+                color: var(--text-secondary);
                 gap: 8px;
             }
             .BiliCompactPanel input[type="number"],
             .BiliCompactPanel input[type="text"] {
-                background: #2a2a2a;
-                border: 1px solid #444;
-                color: #fff;
+                background: var(--input-bg);
+                border: 1px solid var(--border-light);
+                color: var(--text);
                 padding: 4px 10px;
                 border-radius: 6px;
                 width: 80px;
@@ -1096,9 +1143,9 @@
                 width: 140px;
             }
             .BiliCompactPanel select {
-                background: #2a2a2a;
-                border: 1px solid #444;
-                color: #fff;
+                background: var(--input-bg);
+                border: 1px solid var(--border-light);
+                color: var(--text);
                 padding: 4px 8px;
                 border-radius: 6px;
                 font-size: 14px;
@@ -1106,7 +1153,7 @@
                 cursor: pointer;
             }
             .BiliCompactPanel input[type="checkbox"] {
-                accent-color: #fb7299;
+                accent-color: var(--accent);
                 width: 18px;
                 height: 18px;
                 cursor: pointer;
@@ -1119,7 +1166,7 @@
                 flex-wrap: wrap;
             }
             .BiliCompactPanel button {
-                background: #fb7299;
+                background: var(--accent);
                 border: none;
                 color: #fff;
                 padding: 6px 18px;
@@ -1130,13 +1177,14 @@
                 transition: background 0.2s;
             }
             .BiliCompactPanel button.Secondary {
-                background: #444;
+                background: var(--btn-secondary-bg);
+                color: var(--btn-secondary-text);
             }
             .BiliCompactPanel button:hover {
-                background: #ff85a8;
+                background: var(--accent-hover);
             }
             .BiliCompactPanel button.Secondary:hover {
-                background: #555;
+                background: var(--btn-secondary-hover);
             }
             .BiliCompactPanel .Hint {
                 font-size: 12px;
@@ -1149,10 +1197,10 @@
                 align-items: center;
                 justify-content: space-between;
                 font-size: 14px;
-                color: #ccc;
+                color: var(--text-secondary);
             }
             .BiliCompactPanel .StatusBadge {
-                background: #fb7299;
+                background: var(--accent);
                 color: #fff;
                 border-radius: 12px;
                 padding: 2px 12px;
@@ -1160,7 +1208,40 @@
                 font-weight: bold;
             }
             .BiliCompactPanel .StatusBadge.Off {
-                background: #666;
+                background: var(--badge-off);
+            }
+            /* Collapsible section */
+            .BiliCompactPanel .CollapseHeader {
+                display: flex;
+                align-items: center;
+                gap: 6px;
+                cursor: pointer;
+                padding: 6px 8px;
+                border-radius: 6px;
+                user-select: none;
+                font-size: 13px;
+                color: var(--accent);
+                font-weight: 500;
+                transition: background 0.15s;
+            }
+            .BiliCompactPanel .CollapseHeader:hover {
+                background: var(--collapse-hover);
+            }
+            .BiliCompactPanel .CollapseArrow {
+                transition: transform 0.2s;
+                font-size: 12px;
+                line-height: 1;
+            }
+            .BiliCompactPanel .CollapseArrow.open {
+                transform: rotate(90deg);
+            }
+            .BiliCompactPanel .CollapseContent {
+                display: flex;
+                flex-direction: column;
+                gap: 8px;
+            }
+            .BiliCompactPanel .CollapseContent.collapsed {
+                display: none;
             }
         `;
         document.head.appendChild(StyleEl);
@@ -1181,6 +1262,14 @@
 
         const Panel = document.createElement('div');
         Panel.className = 'BiliCompactPanel';
+
+        // 应用颜色模式
+        const effectiveColorMode = (Config.ColorMode || 'auto') === 'auto'
+            ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
+            : Config.ColorMode;
+        if (effectiveColorMode === 'light') {
+            Panel.classList.add('light-mode');
+        }
 
         // 语言选项
         const LangOptions = [
@@ -1208,12 +1297,22 @@
             <label>${T('PanelDebug')} <input type="checkbox" id="CfgDebug" ${Config.Debug ? 'checked' : ''}></label>
             <label>${T('PanelEnableCommentPurifier')} <input type="checkbox" id="CfgEnablePurifier" ${Config.EnableCommentPurifier ? 'checked' : ''}></label>
             <label>${T('PanelLanguage')} <select id="CfgLanguage">${LangSelectHTML}</select></label>
+            <label>${T('PanelColorMode')} <select id="CfgColorMode">
+                <option value="auto" ${(Config.ColorMode || 'auto') === 'auto' ? 'selected' : ''}>${T('PanelColorAuto')}</option>
+                <option value="dark" ${Config.ColorMode === 'dark' ? 'selected' : ''}>${T('PanelColorDark')}</option>
+                <option value="light" ${Config.ColorMode === 'light' ? 'selected' : ''}>${T('PanelColorLight')}</option>
+            </select></label>
             <label>${T('PanelKeepUpids')} <input type="text" id="CfgKeepUids" value="${(Config.KeepSpecialUPIDs || []).join(',')}"></label>
-            <hr style="margin:8px 0;border:none;border-top:1px solid #333">
-            <h4 style="margin:4px 0 8px;font-size:13px;color:#fb7299">${'去除元素'}</h4>
+            <hr style="margin:8px 0;border:none;border-top:1px solid var(--hr, #333)">
+            <div class="CollapseHeader" id="CfgCollapseRm">
+                <span class="CollapseArrow" id="CfgCollapseRmArrow">▸</span>
+                <span>${'去除元素'}</span>
+            </div>
+            <div class="CollapseContent collapsed" id="CfgCollapseRmContent">
             ${ELEMENT_REMOVAL_PRESETS.map(function(P) {
                 return '<label><span style="flex:1">' + P.name + '</span> <input type="checkbox" id="CfgRm_' + P.id + '" ' + ((Config.RemovedElements || {})[P.id] ? 'checked' : '') + '></label>';
             }).join('')}
+            </div>
             <div class="BtnRow">
                 <button class="Secondary" id="CfgToggle">${IsActive ? T('PanelBtnPause') : T('PanelBtnResume')}</button>
                 <button class="Secondary" id="CfgReset">${T('PanelBtnReset')}</button>
@@ -1239,6 +1338,7 @@
                 ExcludePaid: document.getElementById('CfgExcludePaid').checked,
                 KeepPromoted: document.getElementById('CfgKeepPromoted').checked,
                 Language: NewLang,
+                ColorMode: document.getElementById('CfgColorMode').value,
                 KeepSpecialUPIDs: document.getElementById('CfgKeepUids').value.split(',').map(S => S.trim()).filter(Boolean).map(Number),
                 Debug: document.getElementById('CfgDebug').checked,
                 EnableCommentPurifier: document.getElementById('CfgEnablePurifier').checked,
@@ -1289,12 +1389,21 @@
             document.getElementById('CfgKeepPromoted').checked = Config.KeepPromoted;
             document.getElementById('CfgDebug').checked = Config.Debug;
             document.getElementById("CfgEnablePurifier").checked = false;
+            document.getElementById('CfgColorMode').value = Config.ColorMode || 'auto';
             document.getElementById('CfgKeepUids').value = '';
             for (var I = 0; I < ELEMENT_REMOVAL_PRESETS.length; I++) {
                 var cb = document.getElementById('CfgRm_' + ELEMENT_REMOVAL_PRESETS[I].id);
                 if (cb) cb.checked = false;
             }
             stopCommentPurifier();
+            // 重置后重新应用颜色模式主题
+            const resetPanel = document.querySelector('.BiliCompactPanel');
+            if (resetPanel) {
+                const resetMode = (Config.ColorMode || 'auto') === 'auto'
+                    ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
+                    : Config.ColorMode;
+                resetPanel.classList.toggle('light-mode', resetMode === 'light');
+            }
             LimitVideos();
             applyElementRemoval();
         });
@@ -1312,6 +1421,20 @@
                 Badge.className = 'StatusBadge' + (IsActive ? '' : ' Off');
             }
             this.textContent = IsActive ? T('PanelBtnPause') : T('PanelBtnResume');
+        });
+
+        // 去除元素折叠切换
+        document.getElementById('CfgCollapseRm').addEventListener('click', function() {
+            const content = document.getElementById('CfgCollapseRmContent');
+            const arrow = document.getElementById('CfgCollapseRmArrow');
+            const isCollapsed = content.classList.contains('collapsed');
+            if (isCollapsed) {
+                content.classList.remove('collapsed');
+                arrow.classList.add('open');
+            } else {
+                content.classList.add('collapsed');
+                arrow.classList.remove('open');
+            }
         });
 
         Overlay.addEventListener('click', function(E) {
