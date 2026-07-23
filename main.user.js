@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         网页端B站主页精简~ BiliCompact
 // @namespace    http://tampermonkey.net/
-// @version      2.5.1
+// @version      2.5.2
 // @license MIT
 // @description  你是否厌倦了B站网页端极多视频？想要更简要的界面？这个插件将帮助你只显示指定数量的视频，支持多种页面、黑/白名单、配置持久化。非侵入式设计，不在B站页面注入任何UI元素。支持简中，繁中，英语。
 // @author       TwilightRain
@@ -10,6 +10,7 @@
 // @match        https://www.bilibili.com/index/*
 // @match        https://www.bilibili.com/v/popular/*
 // @match        https://www.bilibili.com/v/*/*
+// @match        https://www.bilibili.com/video/*
 // @match        https://www.bilibili.com/dynamic*
 // @match        https://www.bilibili.com/search*
 // @match        https://www.bilibili.com/anime/*
